@@ -482,7 +482,7 @@ td.num { font-weight: 700; font-size: 1.05rem; }
 
   <div id="comprobante" class="tarjeta comprobante" hidden>
     <p class="comprobante__hecho">Equipaje recibido</p>
-    <div id="comprobante-ticket" class="ticket ticket--solo"></div>
+    <div id="comprobante-ticket"></div>
     <div class="comprobante__botones">
       <button type="button" class="boton boton--principal" id="imprimir-comprobante">Imprimir este ticket</button>
       <button type="button" class="boton boton--suave" id="recibir-otro">Recibir otro</button>
@@ -1139,10 +1139,14 @@ if (typeof module !== 'undefined' && module.exports) module.exports = QR;
 
   const codigo = (numero) => String(numero).padStart(2, '0');
 
+  // En 24 horas: ocupa la mitad del ancho que «12:07 p. m.» y no se presta a dudas.
   const hora = (iso) =>
-    iso ? new Date(iso).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '';
+    iso
+      ? new Date(iso).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false })
+      : '';
 
-  const fechaHora = (iso) => (iso ? new Date(iso).toLocaleString('es-CL') : '');
+  const fechaHora = (iso) =>
+    iso ? new Date(iso).toLocaleString('es-CL', { hour12: false }) : '';
 
   const ubicacionDe = (r) => (r.zona ? `${r.zona}-${r.posicion}` : 'sin ubicación');
 
