@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Custodia de equipaje</title>
+<meta name="description" content="Registro de equipaje para un evento: tickets con QR, foto del bulto y ubicación en el salón. Funciona sin internet.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🧳</text></svg>">
+<link rel="stylesheet" href="assets/css/estilos.css">
+</head>
+<body>
+
+<p id="alerta" class="alerta" role="alert" hidden></p>
+
+<header class="cabecera">
+  <div>
+    <h1 id="titulo-evento">Custodia de equipaje</h1>
+    <p id="resumen" class="cabecera__resumen">Cargando…</p>
+  </div>
+  <button type="button" id="respaldar" class="boton boton--suave">
+    Respaldar<span id="pendientes" class="insignia" hidden></span>
+  </button>
+</header>
+
+<nav class="pestanas" role="tablist" aria-label="Secciones">
+  <button role="tab" class="pestana" data-panel="recibir" aria-selected="true">Recibir</button>
+  <button role="tab" class="pestana" data-panel="entregar" aria-selected="false">Entregar</button>
+  <button role="tab" class="pestana" data-panel="listado" aria-selected="false">Listado</button>
+  <button role="tab" class="pestana" data-panel="tickets" aria-selected="false">Tickets</button>
+  <button role="tab" class="pestana" data-panel="ajustes" aria-selected="false">Ajustes</button>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════ RECIBIR ══════════════════════════ -->
+<section id="panel-recibir" class="panel" role="tabpanel" aria-label="Recibir">
+
+  <form id="forma-recibir" class="tarjeta" autocomplete="off">
+    <div class="fila fila--numero">
+      <label class="campo campo--angosto">
+        <span class="campo__nombre">Ticket</span>
+        <input type="number" id="r-numero" class="numero-grande" min="1" max="999" required>
+      </label>
+      <p class="campo__pista">Es el número del ticket que le entregas a la persona.</p>
+    </div>
+
+    <label class="campo">
+      <span class="campo__nombre">Nombre y apellido <b class="obligatorio">*</b></span>
+      <input type="text" id="r-nombre" required autocapitalize="words" placeholder="María González">
+    </label>
+
+    <div class="fila">
+      <label class="campo">
+        <span class="campo__nombre">Teléfono <span class="campo__opcional">(opcional)</span></span>
+        <input type="tel" id="r-telefono" inputmode="tel" placeholder="9 1234 5678">
+      </label>
+      <label class="campo campo--angosto">
+        <span class="campo__nombre">Bultos</span>
+        <input type="number" id="r-bultos" min="1" max="20" value="1" required>
+      </label>
+    </div>
+
+    <label class="campo">
+      <span class="campo__nombre">Descripción</span>
+      <input type="text" id="r-descripcion" placeholder="Mochila negra con cintas rojas">
+    </label>
+    <div class="atajos" id="r-atajos"></div>
+
+    <div class="campo">
+      <span class="campo__nombre">Foto <span class="campo__opcional">(opcional, pero ayuda mucho)</span></span>
+      <div class="foto">
+        <input type="file" id="r-foto" accept="image/*" capture="environment" hidden>
+        <button type="button" class="boton boton--suave" id="r-foto-boton">Tomar o elegir foto</button>
+        <button type="button" class="boton boton--texto" id="r-foto-quitar" hidden>Quitar</button>
+        <img id="r-foto-vista" class="foto__vista" alt="" hidden>
+      </div>
+    </div>
+
+    <fieldset class="campo">
+      <legend class="campo__nombre">¿Dónde queda en el salón?</legend>
+      <div class="zonas" id="r-zonas" role="radiogroup" aria-label="Zona"></div>
+      <div class="posiciones" id="r-posiciones" aria-label="Posición"></div>
+      <p class="campo__pista" id="r-ubicacion-elegida">—</p>
+    </fieldset>
+
+    <button type="submit" class="boton boton--principal boton--ancho">Guardar y ver el ticket</button>
+  </form>
+
+  <div id="comprobante" class="tarjeta comprobante" hidden>
+    <p class="comprobante__hecho">Equipaje recibido</p>
+    <div id="comprobante-ticket" class="ticket ticket--solo"></div>
+    <div class="comprobante__botones">
+      <button type="button" class="boton boton--principal" id="imprimir-comprobante">Imprimir este ticket</button>
+      <button type="button" class="boton boton--suave" id="recibir-otro">Recibir otro</button>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════ ENTREGAR ══════════════════════════ -->
+<section id="panel-entregar" class="panel" role="tabpanel" aria-label="Entregar" hidden>
+
+  <div class="tarjeta">
+    <label class="campo">
+      <span class="campo__nombre">Escanea el QR, o escribe el número o el nombre</span>
+      <input type="search" id="e-busca" class="busca" placeholder="07  ·  María" autocomplete="off">
+    </label>
+    <button type="button" class="boton boton--suave" id="e-escanear" hidden>Escanear con la cámara</button>
+    <div id="e-camara" class="camara" hidden>
+      <video id="e-video" playsinline muted></video>
+      <button type="button" class="boton boton--texto" id="e-cerrar-camara">Cerrar la cámara</button>
+    </div>
+  </div>
+
+  <div id="e-resultados" class="resultados"></div>
+  <div id="e-ficha"></div>
+
+</section>
+
+<!-- ══════════════════════════ LISTADO ══════════════════════════ -->
+<section id="panel-listado" class="panel" role="tabpanel" aria-label="Listado" hidden>
+
+  <div class="tarjeta barra">
+    <div class="filtros" id="l-filtros" role="radiogroup" aria-label="Filtrar">
+      <button type="button" class="filtro filtro--activo" data-filtro="custodia">En custodia</button>
+      <button type="button" class="filtro" data-filtro="entregados">Entregados</button>
+      <button type="button" class="filtro" data-filtro="todos">Todos</button>
+    </div>
+    <input type="search" id="l-busca" class="busca busca--chica" placeholder="Buscar…" autocomplete="off">
+    <button type="button" class="boton boton--suave" id="l-csv">Descargar planilla</button>
+  </div>
+
+  <div id="l-tabla" class="tabla-envoltura"></div>
+
+</section>
+
+<!-- ══════════════════════════ TICKETS ══════════════════════════ -->
+<section id="panel-tickets" class="panel" role="tabpanel" aria-label="Tickets" hidden>
+
+  <div class="tarjeta">
+    <h2>Imprimir los tickets antes del evento</h2>
+    <p class="parrafo">
+      Cada ticket sale en dos mitades con el mismo número: una se pega o se amarra
+      al equipaje y la otra se la queda la persona. Imprímelos antes y córtalos por
+      la línea del medio; así el día del evento no dependes de una impresora.
+    </p>
+    <div class="fila">
+      <label class="campo campo--angosto">
+        <span class="campo__nombre">Desde</span>
+        <input type="number" id="t-desde" min="1" max="999" value="1">
+      </label>
+      <label class="campo campo--angosto">
+        <span class="campo__nombre">Hasta</span>
+        <input type="number" id="t-hasta" min="1" max="999" value="60">
+      </label>
+    </div>
+    <div class="botonera">
+      <button type="button" class="boton boton--principal" id="t-generar">Preparar la lámina</button>
+      <button type="button" class="boton boton--suave" id="t-imprimir" hidden>Imprimir</button>
+    </div>
+  </div>
+
+  <div id="t-vista" class="vista-previa" hidden>
+    <p class="vista-previa__nota">Así se van a ver. Entran 16 por hoja tamaño carta.</p>
+    <div id="t-muestra" class="lamina lamina--muestra"></div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════ AJUSTES ══════════════════════════ -->
+<section id="panel-ajustes" class="panel" role="tabpanel" aria-label="Ajustes" hidden>
+
+  <form id="forma-ajustes" class="tarjeta" autocomplete="off">
+    <h2>El evento</h2>
+    <label class="campo">
+      <span class="campo__nombre">Nombre</span>
+      <input type="text" id="a-evento" placeholder="Custodia de equipaje">
+    </label>
+    <label class="campo">
+      <span class="campo__nombre">Zonas del salón</span>
+      <input type="text" id="a-zonas" placeholder="A, B, C">
+      <span class="campo__pista">Separadas por coma. Ponles el nombre que de verdad usen: «Entrada», «Altar», «Cocina».</span>
+    </label>
+    <label class="campo campo--angosto">
+      <span class="campo__nombre">Posiciones por zona</span>
+      <input type="number" id="a-posiciones" min="1" max="99" value="20">
+    </label>
+    <button type="submit" class="boton boton--principal">Guardar</button>
+  </form>
+
+  <div class="tarjeta">
+    <h2>Respaldo</h2>
+    <p class="parrafo">
+      Todo queda guardado dentro de este navegador, en este equipo. No viaja a
+      ninguna parte. Eso también quiere decir que si se borra el navegador o se
+      pierde el equipo, se pierden los datos: descarga un respaldo de vez en cuando.
+    </p>
+    <p class="parrafo" id="a-espacio"></p>
+    <div class="botonera">
+      <button type="button" class="boton boton--principal" id="a-exportar">Descargar respaldo</button>
+      <input type="file" id="a-importar" accept="application/json,.json" hidden>
+      <button type="button" class="boton boton--suave" id="a-importar-boton">Cargar un respaldo</button>
+    </div>
+  </div>
+
+  <div class="tarjeta tarjeta--peligro">
+    <h2>Borrar todo</h2>
+    <p class="parrafo">
+      Borra los registros y deja la aplicación como recién abierta. No se puede deshacer.
+    </p>
+    <div class="botonera">
+      <input type="text" id="a-confirmar" placeholder="Escribe BORRAR" autocomplete="off" aria-label="Escribe BORRAR para confirmar">
+      <button type="button" class="boton boton--peligro" id="a-borrar">Borrar todo</button>
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<!-- Solo para imprimir -->
+<div id="lamina" class="lamina" aria-hidden="true"></div>
+
+<script src="assets/js/qr.js"></script>
+<script src="assets/js/app.js"></script>
+</body>
+</html>

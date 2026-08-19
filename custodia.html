@@ -1,0 +1,1810 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Custodia de equipaje</title>
+<meta name="description" content="Registro de equipaje para un evento: tickets con QR, foto del bulto y ubicación en el salón. Funciona sin internet.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🧳</text></svg>">
+<style>
+/* Custodia de equipaje.
+   Pensado para que lo use alguien de pie, apurado y con poca luz:
+   letra grande, botones grandes y mucho contraste. */
+
+:root {
+  --fondo: #f5f3ef;
+  --papel: #ffffff;
+  --tinta: #21252c;
+  --suave: #5c6471;
+  --linea: #e3ded5;
+  --acento: #1a6154;
+  --acento-suave: #e6f0ed;
+  --peligro: #9d3324;
+  --peligro-suave: #fbeeeb;
+  --ok: #2c7048;
+  --ok-suave: #e8f2eb;
+  --sombra: 0 1px 2px rgba(33, 37, 44, .06), 0 4px 14px rgba(33, 37, 44, .05);
+  --radio: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 1rem 4rem;
+  background: var(--fondo);
+  color: var(--tinta);
+  font: 17px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1, h2 { line-height: 1.2; margin: 0; }
+h1 { font-size: 1.35rem; }
+h2 { font-size: 1.1rem; margin-bottom: .6rem; }
+
+.parrafo { margin: 0 0 1rem; color: var(--suave); }
+
+/* ── Cabecera y pestañas ─────────────────────────────────────── */
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1.2rem 0 .8rem;
+}
+
+.cabecera__resumen { margin: .2rem 0 0; color: var(--suave); font-size: .9rem; }
+
+.pestanas {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: .25rem;
+  max-width: 60rem;
+  margin: 0 auto 1.2rem;
+  padding: .35rem;
+  overflow-x: auto;
+  background: var(--papel);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.pestana {
+  flex: 1 0 auto;
+  padding: .6rem .9rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--suave);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pestana[aria-selected="true"] { background: var(--acento); color: #fff; }
+.pestana:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+main { max-width: 60rem; margin: 0 auto; }
+
+/* ── Tarjetas y formularios ──────────────────────────────────── */
+
+.tarjeta {
+  margin-bottom: 1.2rem;
+  padding: 1.2rem;
+  background: var(--papel);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.tarjeta--peligro { border-color: #edd3cd; background: var(--peligro-suave); }
+.tarjeta--peligro h2 { color: var(--peligro); }
+
+.campo { display: block; margin-bottom: 1rem; border: 0; padding: 0; }
+.campo__nombre { display: block; margin-bottom: .3rem; font-size: .88rem; font-weight: 600; }
+.campo__opcional { font-weight: 400; color: var(--suave); }
+.campo__pista { margin: .35rem 0 0; font-size: .85rem; color: var(--suave); }
+.obligatorio { color: var(--peligro); }
+
+input[type="text"], input[type="tel"], input[type="number"], input[type="search"], input[type="file"] {
+  width: 100%;
+  padding: .65rem .8rem;
+  border: 1px solid #cfc8bd;
+  border-radius: 9px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+input:focus-visible { outline: 3px solid var(--acento); outline-offset: 1px; border-color: var(--acento); }
+
+.fila { display: flex; gap: .8rem; flex-wrap: wrap; align-items: flex-end; }
+.fila > .campo { flex: 1 1 12rem; }
+.fila > .campo--angosto { flex: 0 0 8rem; }
+.fila--numero { align-items: center; margin-bottom: 1rem; }
+.fila--numero .campo__pista { flex: 1 1 12rem; margin: 0; }
+
+.numero-grande { font-size: 1.8rem; font-weight: 700; text-align: center; letter-spacing: .04em; }
+
+.atajos { display: flex; flex-wrap: wrap; gap: .4rem; margin: -.6rem 0 1rem; }
+
+.atajo {
+  padding: .35rem .7rem;
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+  background: var(--fondo);
+  font: inherit;
+  font-size: .85rem;
+  color: var(--suave);
+  cursor: pointer;
+}
+
+.atajo:hover { border-color: var(--acento); color: var(--acento); }
+
+/* ── Botones ─────────────────────────────────────────────────── */
+
+.boton {
+  padding: .7rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton--principal { background: var(--acento); color: #fff; }
+.boton--suave { background: var(--papel); border-color: #cfc8bd; color: var(--tinta); }
+.boton--texto { background: none; color: var(--suave); text-decoration: underline; padding: .4rem .2rem; }
+.boton--peligro { background: var(--peligro); color: #fff; }
+.boton--ancho { width: 100%; padding: .95rem; font-size: 1.05rem; }
+.boton:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
+.boton[disabled] { opacity: .5; cursor: default; }
+
+.botonera { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.botonera input[type="text"] { width: auto; flex: 0 1 12rem; }
+
+.insignia {
+  display: inline-block;
+  min-width: 1.4em;
+  margin-left: .4rem;
+  padding: 0 .35em;
+  border-radius: 999px;
+  background: var(--peligro);
+  color: #fff;
+  font-size: .78rem;
+  text-align: center;
+}
+
+/* ── Aviso de arriba ─────────────────────────────────────────── */
+
+.alerta {
+  max-width: 60rem;
+  margin: 1rem auto 0;
+  padding: .8rem 1rem;
+  border-radius: var(--radio);
+  background: var(--peligro-suave);
+  border: 1px solid #edd3cd;
+  color: var(--peligro);
+  font-weight: 600;
+}
+
+.alerta--ok { background: var(--ok-suave); border-color: #cfe3d6; color: var(--ok); }
+
+/* ── Foto ────────────────────────────────────────────────────── */
+
+.foto { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.foto__vista { width: 100%; max-width: 15rem; border-radius: 9px; border: 1px solid var(--linea); }
+
+/* ── Zonas y posiciones ──────────────────────────────────────── */
+
+.zonas { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .8rem; }
+
+.zona {
+  min-width: 3.5rem;
+  padding: .6rem .9rem;
+  border: 1px solid #cfc8bd;
+  border-radius: 9px;
+  background: var(--papel);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zona[aria-checked="true"] { background: var(--acento); border-color: var(--acento); color: #fff; }
+
+.posiciones { display: flex; flex-wrap: wrap; gap: .3rem; }
+
+.posicion {
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid #cfc8bd;
+  border-radius: 8px;
+  background: var(--papel);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+.posicion[aria-checked="true"] { background: var(--acento); border-color: var(--acento); color: #fff; }
+.posicion--ocupada { background: #eceae5; color: #a9a49b; border-style: dashed; cursor: not-allowed; }
+
+/* ── Entregar ────────────────────────────────────────────────── */
+
+.busca { font-size: 1.3rem; padding: .8rem 1rem; }
+.busca--chica { font-size: 1rem; flex: 1 1 10rem; width: auto; }
+
+.camara { margin-top: .8rem; }
+.camara video { width: 100%; max-width: 22rem; border-radius: var(--radio); background: #000; }
+
+.resultados { display: grid; gap: .6rem; margin-bottom: 1.2rem; }
+
+.resultado {
+  display: flex;
+  gap: .9rem;
+  align-items: center;
+  width: 100%;
+  padding: .8rem 1rem;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  background: var(--papel);
+  box-shadow: var(--sombra);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.resultado__numero {
+  flex: 0 0 3rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--acento);
+}
+
+.resultado__nombre { font-weight: 600; }
+.resultado__detalle { font-size: .85rem; color: var(--suave); }
+.resultado--entregado .resultado__numero { color: var(--suave); }
+
+.vacio { padding: 1.2rem; text-align: center; color: var(--suave); }
+
+.ficha { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+.ficha__ubicacion { font-size: 2.6rem; font-weight: 700; line-height: 1.1; color: var(--acento); }
+.ficha__etiqueta { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); }
+.ficha__foto { width: 100%; max-width: 16rem; border-radius: var(--radio); border: 1px solid var(--linea); }
+.ficha__dato { margin: 0 0 .5rem; }
+.ficha__entregado { padding: .8rem 1rem; border-radius: 9px; background: var(--ok-suave); color: var(--ok); font-weight: 600; }
+
+@media (min-width: 40rem) {
+  .ficha { grid-template-columns: 1fr auto; align-items: start; }
+}
+
+/* ── Listado ─────────────────────────────────────────────────── */
+
+.barra { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.filtros { display: flex; gap: .25rem; }
+
+.filtro {
+  padding: .5rem .8rem;
+  border: 1px solid #cfc8bd;
+  border-radius: 8px;
+  background: var(--papel);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+.filtro--activo { background: var(--acento); border-color: var(--acento); color: #fff; }
+
+.tabla-envoltura { overflow-x: auto; background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radio); box-shadow: var(--sombra); }
+
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+th, td { padding: .6rem .8rem; text-align: left; border-bottom: 1px solid var(--linea); vertical-align: top; }
+th { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--suave); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-weight: 700; font-size: 1.05rem; }
+.estado--entregado { color: var(--ok); font-weight: 600; }
+.estado--custodia { color: var(--suave); }
+
+/* ── Tickets ─────────────────────────────────────────────────── */
+
+.vista-previa__nota { color: var(--suave); font-size: .9rem; }
+.lamina--muestra { background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radio); padding: 1rem; box-shadow: var(--sombra); }
+
+.ticket {
+  display: flex;
+  border: 1px dashed #9a948a;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.ticket__mitad {
+  flex: 1;
+  display: flex;
+  gap: .6rem;
+  align-items: center;
+  padding: .5rem .6rem;
+  min-width: 0;
+}
+
+.ticket__mitad + .ticket__mitad { border-left: 1px dashed #9a948a; }
+.ticket__qr { flex: 0 0 4.2rem; }
+.ticket__qr svg { display: block; width: 100%; height: auto; }
+.ticket__texto { min-width: 0; }
+.ticket__evento { font-size: .58rem; text-transform: uppercase; letter-spacing: .07em; color: #6b6a66; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ticket__numero { font-size: 1.7rem; font-weight: 700; line-height: 1; }
+.ticket__rol { font-size: .58rem; color: #6b6a66; }
+
+.ticket--solo { max-width: 26rem; margin: 0 auto 1.2rem; }
+.ticket--solo .ticket__qr { flex-basis: 5rem; }
+.ticket--solo .ticket__numero { font-size: 2.4rem; }
+
+.hoja { font-size: 0; line-height: 0; }
+.hoja > .ticket { display: inline-flex; width: 50%; vertical-align: top; }
+
+.comprobante { text-align: center; }
+.comprobante__hecho { margin: 0 0 1rem; color: var(--ok); font-weight: 700; font-size: 1.1rem; }
+.comprobante__botones { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; }
+
+/* ── Impresión ───────────────────────────────────────────────── */
+
+#lamina { display: none; }
+
+@media print {
+  @page { margin: 10mm; }
+
+  body { padding: 0; background: #fff; }
+  .cabecera, .pestanas, main, .alerta { display: none !important; }
+
+  #lamina { display: block; }
+  .hoja > .ticket { border-radius: 0; height: 30mm; }
+  .ticket { break-inside: avoid; }
+  .ticket--solo { max-width: none; }
+
+  /* Un QR de 22 mm deja cada módulo en unos 0,75 mm. Por debajo de medio
+     milímetro las cámaras de los teléfonos empiezan a fallar, así que
+     conviene no achicarlo más aunque quepan más tickets por hoja. */
+  .ticket__qr { flex: 0 0 22mm; }
+  .ticket--solo .ticket__qr { flex-basis: 30mm; }
+}
+
+</style>
+</head>
+<body>
+
+<p id="alerta" class="alerta" role="alert" hidden></p>
+
+<header class="cabecera">
+  <div>
+    <h1 id="titulo-evento">Custodia de equipaje</h1>
+    <p id="resumen" class="cabecera__resumen">Cargando…</p>
+  </div>
+  <button type="button" id="respaldar" class="boton boton--suave">
+    Respaldar<span id="pendientes" class="insignia" hidden></span>
+  </button>
+</header>
+
+<nav class="pestanas" role="tablist" aria-label="Secciones">
+  <button role="tab" class="pestana" data-panel="recibir" aria-selected="true">Recibir</button>
+  <button role="tab" class="pestana" data-panel="entregar" aria-selected="false">Entregar</button>
+  <button role="tab" class="pestana" data-panel="listado" aria-selected="false">Listado</button>
+  <button role="tab" class="pestana" data-panel="tickets" aria-selected="false">Tickets</button>
+  <button role="tab" class="pestana" data-panel="ajustes" aria-selected="false">Ajustes</button>
+</nav>
+
+<main>
+
+<!-- ══════════════════════════ RECIBIR ══════════════════════════ -->
+<section id="panel-recibir" class="panel" role="tabpanel" aria-label="Recibir">
+
+  <form id="forma-recibir" class="tarjeta" autocomplete="off">
+    <div class="fila fila--numero">
+      <label class="campo campo--angosto">
+        <span class="campo__nombre">Ticket</span>
+        <input type="number" id="r-numero" class="numero-grande" min="1" max="999" required>
+      </label>
+      <p class="campo__pista">Es el número del ticket que le entregas a la persona.</p>
+    </div>
+
+    <label class="campo">
+      <span class="campo__nombre">Nombre y apellido <b class="obligatorio">*</b></span>
+      <input type="text" id="r-nombre" required autocapitalize="words" placeholder="María González">
+    </label>
+
+    <div class="fila">
+      <label class="campo">
+        <span class="campo__nombre">Teléfono <span class="campo__opcional">(opcional)</span></span>
+        <input type="tel" id="r-telefono" inputmode="tel" placeholder="9 1234 5678">
+      </label>
+      <label class="campo campo--angosto">
+        <span class="campo__nombre">Bultos</span>
+        <input type="number" id="r-bultos" min="1" max="20" value="1" required>
+      </label>
+    </div>
+
+    <label class="campo">
+      <span class="campo__nombre">Descripción</span>
+      <input type="text" id="r-descripcion" placeholder="Mochila negra con cintas rojas">
+    </label>
+    <div class="atajos" id="r-atajos"></div>
+
+    <div class="campo">
+      <span class="campo__nombre">Foto <span class="campo__opcional">(opcional, pero ayuda mucho)</span></span>
+      <div class="foto">
+        <input type="file" id="r-foto" accept="image/*" capture="environment" hidden>
+        <button type="button" class="boton boton--suave" id="r-foto-boton">Tomar o elegir foto</button>
+        <button type="button" class="boton boton--texto" id="r-foto-quitar" hidden>Quitar</button>
+        <img id="r-foto-vista" class="foto__vista" alt="" hidden>
+      </div>
+    </div>
+
+    <fieldset class="campo">
+      <legend class="campo__nombre">¿Dónde queda en el salón?</legend>
+      <div class="zonas" id="r-zonas" role="radiogroup" aria-label="Zona"></div>
+      <div class="posiciones" id="r-posiciones" aria-label="Posición"></div>
+      <p class="campo__pista" id="r-ubicacion-elegida">—</p>
+    </fieldset>
+
+    <button type="submit" class="boton boton--principal boton--ancho">Guardar y ver el ticket</button>
+  </form>
+
+  <div id="comprobante" class="tarjeta comprobante" hidden>
+    <p class="comprobante__hecho">Equipaje recibido</p>
+    <div id="comprobante-ticket" class="ticket ticket--solo"></div>
+    <div class="comprobante__botones">
+      <button type="button" class="boton boton--principal" id="imprimir-comprobante">Imprimir este ticket</button>
+      <button type="button" class="boton boton--suave" id="recibir-otro">Recibir otro</button>
+    </div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════ ENTREGAR ══════════════════════════ -->
+<section id="panel-entregar" class="panel" role="tabpanel" aria-label="Entregar" hidden>
+
+  <div class="tarjeta">
+    <label class="campo">
+      <span class="campo__nombre">Escanea el QR, o escribe el número o el nombre</span>
+      <input type="search" id="e-busca" class="busca" placeholder="07  ·  María" autocomplete="off">
+    </label>
+    <button type="button" class="boton boton--suave" id="e-escanear" hidden>Escanear con la cámara</button>
+    <div id="e-camara" class="camara" hidden>
+      <video id="e-video" playsinline muted></video>
+      <button type="button" class="boton boton--texto" id="e-cerrar-camara">Cerrar la cámara</button>
+    </div>
+  </div>
+
+  <div id="e-resultados" class="resultados"></div>
+  <div id="e-ficha"></div>
+
+</section>
+
+<!-- ══════════════════════════ LISTADO ══════════════════════════ -->
+<section id="panel-listado" class="panel" role="tabpanel" aria-label="Listado" hidden>
+
+  <div class="tarjeta barra">
+    <div class="filtros" id="l-filtros" role="radiogroup" aria-label="Filtrar">
+      <button type="button" class="filtro filtro--activo" data-filtro="custodia">En custodia</button>
+      <button type="button" class="filtro" data-filtro="entregados">Entregados</button>
+      <button type="button" class="filtro" data-filtro="todos">Todos</button>
+    </div>
+    <input type="search" id="l-busca" class="busca busca--chica" placeholder="Buscar…" autocomplete="off">
+    <button type="button" class="boton boton--suave" id="l-csv">Descargar planilla</button>
+  </div>
+
+  <div id="l-tabla" class="tabla-envoltura"></div>
+
+</section>
+
+<!-- ══════════════════════════ TICKETS ══════════════════════════ -->
+<section id="panel-tickets" class="panel" role="tabpanel" aria-label="Tickets" hidden>
+
+  <div class="tarjeta">
+    <h2>Imprimir los tickets antes del evento</h2>
+    <p class="parrafo">
+      Cada ticket sale en dos mitades con el mismo número: una se pega o se amarra
+      al equipaje y la otra se la queda la persona. Imprímelos antes y córtalos por
+      la línea del medio; así el día del evento no dependes de una impresora.
+    </p>
+    <div class="fila">
+      <label class="campo campo--angosto">
+        <span class="campo__nombre">Desde</span>
+        <input type="number" id="t-desde" min="1" max="999" value="1">
+      </label>
+      <label class="campo campo--angosto">
+        <span class="campo__nombre">Hasta</span>
+        <input type="number" id="t-hasta" min="1" max="999" value="60">
+      </label>
+    </div>
+    <div class="botonera">
+      <button type="button" class="boton boton--principal" id="t-generar">Preparar la lámina</button>
+      <button type="button" class="boton boton--suave" id="t-imprimir" hidden>Imprimir</button>
+    </div>
+  </div>
+
+  <div id="t-vista" class="vista-previa" hidden>
+    <p class="vista-previa__nota">Así se van a ver. Entran 16 por hoja tamaño carta.</p>
+    <div id="t-muestra" class="lamina lamina--muestra"></div>
+  </div>
+
+</section>
+
+<!-- ══════════════════════════ AJUSTES ══════════════════════════ -->
+<section id="panel-ajustes" class="panel" role="tabpanel" aria-label="Ajustes" hidden>
+
+  <form id="forma-ajustes" class="tarjeta" autocomplete="off">
+    <h2>El evento</h2>
+    <label class="campo">
+      <span class="campo__nombre">Nombre</span>
+      <input type="text" id="a-evento" placeholder="Custodia de equipaje">
+    </label>
+    <label class="campo">
+      <span class="campo__nombre">Zonas del salón</span>
+      <input type="text" id="a-zonas" placeholder="A, B, C">
+      <span class="campo__pista">Separadas por coma. Ponles el nombre que de verdad usen: «Entrada», «Altar», «Cocina».</span>
+    </label>
+    <label class="campo campo--angosto">
+      <span class="campo__nombre">Posiciones por zona</span>
+      <input type="number" id="a-posiciones" min="1" max="99" value="20">
+    </label>
+    <button type="submit" class="boton boton--principal">Guardar</button>
+  </form>
+
+  <div class="tarjeta">
+    <h2>Respaldo</h2>
+    <p class="parrafo">
+      Todo queda guardado dentro de este navegador, en este equipo. No viaja a
+      ninguna parte. Eso también quiere decir que si se borra el navegador o se
+      pierde el equipo, se pierden los datos: descarga un respaldo de vez en cuando.
+    </p>
+    <p class="parrafo" id="a-espacio"></p>
+    <div class="botonera">
+      <button type="button" class="boton boton--principal" id="a-exportar">Descargar respaldo</button>
+      <input type="file" id="a-importar" accept="application/json,.json" hidden>
+      <button type="button" class="boton boton--suave" id="a-importar-boton">Cargar un respaldo</button>
+    </div>
+  </div>
+
+  <div class="tarjeta tarjeta--peligro">
+    <h2>Borrar todo</h2>
+    <p class="parrafo">
+      Borra los registros y deja la aplicación como recién abierta. No se puede deshacer.
+    </p>
+    <div class="botonera">
+      <input type="text" id="a-confirmar" placeholder="Escribe BORRAR" autocomplete="off" aria-label="Escribe BORRAR para confirmar">
+      <button type="button" class="boton boton--peligro" id="a-borrar">Borrar todo</button>
+    </div>
+  </div>
+
+</section>
+
+</main>
+
+<!-- Solo para imprimir -->
+<div id="lamina" class="lamina" aria-hidden="true"></div>
+
+<script>
+/* Generador de códigos QR.
+ *
+ * Versiones 1 a 3, modo byte, nivel de corrección de errores M (recupera ~15%).
+ * Alcanza 42 caracteres: de sobra para el número de un ticket.
+ *
+ * Está escrito a mano y sin dependencias a propósito: la aplicación tiene que
+ * funcionar sin internet, así que no puede cargar ninguna librería externa.
+ */
+const QR = (() => {
+  'use strict';
+
+  /* --- Aritmética en el campo de Galois GF(256), polinomio 0x11D --- */
+
+  const EXP = new Uint8Array(512);
+  const LOG = new Uint8Array(256);
+
+  (function tablas() {
+    let x = 1;
+    for (let i = 0; i < 255; i++) {
+      EXP[i] = x;
+      LOG[x] = i;
+      x = (x << 1) ^ (x & 0x80 ? 0x11d : 0);
+    }
+    for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
+  })();
+
+  const mul = (a, b) => (a === 0 || b === 0 ? 0 : EXP[LOG[a] + LOG[b]]);
+
+  /* --- Reed-Solomon --- */
+
+  // Polinomio generador de grado n: el producto de (x - α^i) para i de 0 a n-1.
+  function generador(n) {
+    let g = [1];
+    for (let i = 0; i < n; i++) {
+      const r = new Array(g.length + 1).fill(0);
+      for (let j = 0; j < g.length; j++) {
+        r[j] ^= g[j];
+        r[j + 1] ^= mul(g[j], EXP[i]);
+      }
+      g = r;
+    }
+    return g;
+  }
+
+  // Los n bytes de corrección: el resto de dividir los datos por el generador.
+  function correccion(datos, n) {
+    const g = generador(n);
+    const r = datos.concat(new Array(n).fill(0));
+    for (let i = 0; i < datos.length; i++) {
+      const c = r[i];
+      if (c === 0) continue;
+      for (let j = 1; j < g.length; j++) r[i + j] ^= mul(g[j], c);
+    }
+    return r.slice(datos.length);
+  }
+
+  /* --- Versiones (todas de un solo bloque, por eso no hay que intercalar) --- */
+
+  const VERSIONES = [
+    { tamano: 21, datos: 16, ec: 10, alineacion: [] },
+    { tamano: 25, datos: 28, ec: 16, alineacion: [6, 18] },
+    { tamano: 29, datos: 44, ec: 26, alineacion: [6, 22] },
+  ];
+
+  // Cabecera del modo byte: 4 bits de modo + 8 bits de largo.
+  const CABECERA = 12;
+
+  /* --- Los datos, convertidos a palabras de 8 bits --- */
+
+  function palabras(bytes, cfg) {
+    const buf = [];
+    const push = (valor, largo) => {
+      for (let i = largo - 1; i >= 0; i--) buf.push((valor >> i) & 1);
+    };
+
+    push(0b0100, 4); // modo byte
+    push(bytes.length, 8); // indicador de cantidad (versiones 1 a 9)
+    bytes.forEach((b) => push(b, 8));
+
+    const capacidad = cfg.datos * 8;
+    for (let i = 0; i < 4 && buf.length < capacidad; i++) buf.push(0); // terminador
+    while (buf.length % 8) buf.push(0);
+
+    const salida = [];
+    for (let i = 0; i < buf.length; i += 8) {
+      let v = 0;
+      for (let j = 0; j < 8; j++) v = (v << 1) | buf[i + j];
+      salida.push(v);
+    }
+
+    const relleno = [0xec, 0x11];
+    for (let i = 0; salida.length < cfg.datos; i++) salida.push(relleno[i % 2]);
+    return salida;
+  }
+
+  /* --- La cuadrícula --- */
+
+  // Devuelve la cuadrícula con los patrones fijos puestos y un mapa que marca
+  // qué celdas son fijas, para que ni los datos ni la máscara las toquen.
+  function cuadricula(cfg, flujo) {
+    const n = cfg.tamano;
+    const m = Array.from({ length: n }, () => new Array(n).fill(0));
+    const fijo = Array.from({ length: n }, () => new Array(n).fill(false));
+    const poner = (f, c, v) => {
+      m[f][c] = v;
+      fijo[f][c] = true;
+    };
+
+    // Patrones de localización (las tres esquinas) con su separador.
+    for (const [f0, c0] of [[0, 0], [0, n - 7], [n - 7, 0]]) {
+      for (let f = -1; f <= 7; f++) {
+        for (let c = -1; c <= 7; c++) {
+          const ff = f0 + f;
+          const cc = c0 + c;
+          if (ff < 0 || ff >= n || cc < 0 || cc >= n) continue;
+          const marco =
+            (f >= 0 && f <= 6 && (c === 0 || c === 6)) ||
+            (c >= 0 && c <= 6 && (f === 0 || f === 6));
+          const centro = f >= 2 && f <= 4 && c >= 2 && c <= 4;
+          poner(ff, cc, marco || centro ? 1 : 0);
+        }
+      }
+    }
+
+    // Patrones de sincronismo: la fila y la columna 6.
+    for (let i = 8; i < n - 8; i++) {
+      poner(6, i, i % 2 === 0 ? 1 : 0);
+      poner(i, 6, i % 2 === 0 ? 1 : 0);
+    }
+
+    // Patrones de alineación, salvo los que chocarían con las esquinas.
+    for (const f0 of cfg.alineacion) {
+      for (const c0 of cfg.alineacion) {
+        const esquina =
+          (f0 <= 8 && c0 <= 8) || (f0 <= 8 && c0 >= n - 9) || (f0 >= n - 9 && c0 <= 8);
+        if (esquina) continue;
+        for (let f = -2; f <= 2; f++) {
+          for (let c = -2; c <= 2; c++) {
+            poner(f0 + f, c0 + c, Math.max(Math.abs(f), Math.abs(c)) === 1 ? 0 : 1);
+          }
+        }
+      }
+    }
+
+    // Reserva del espacio del formato, incluido el módulo oscuro obligatorio.
+    // Va en blanco a propósito: forma parte del formato, así que no debe
+    // influir en el puntaje con que se elige la máscara.
+    poner(n - 8, 8, 0);
+    for (let i = 0; i <= 8; i++) {
+      if (!fijo[8][i]) poner(8, i, 0);
+      if (!fijo[i][8]) poner(i, 8, 0);
+    }
+    for (let i = 0; i < 8; i++) {
+      if (!fijo[8][n - 1 - i]) poner(8, n - 1 - i, 0);
+      if (!fijo[n - 1 - i][8]) poner(n - 1 - i, 8, 0);
+    }
+
+    // Los datos se escriben en zigzag, de a dos columnas, desde abajo a la derecha.
+    let bit = 0;
+    let subiendo = true;
+    for (let col = n - 1; col > 0; col -= 2) {
+      if (col === 6) col--; // la columna de sincronismo no cuenta
+      for (let k = 0; k < n; k++) {
+        const fila = subiendo ? n - 1 - k : k;
+        for (const c of [col, col - 1]) {
+          if (fijo[fila][c]) continue;
+          m[fila][c] = bit < flujo.length ? flujo[bit] : 0;
+          bit++;
+        }
+      }
+      subiendo = !subiendo;
+    }
+
+    return { m, fijo };
+  }
+
+  /* --- Máscaras y formato --- */
+
+  const MASCARAS = [
+    (f, c) => (f + c) % 2 === 0,
+    (f) => f % 2 === 0,
+    (f, c) => c % 3 === 0,
+    (f, c) => (f + c) % 3 === 0,
+    (f, c) => (Math.floor(f / 2) + Math.floor(c / 3)) % 2 === 0,
+    (f, c) => ((f * c) % 2) + ((f * c) % 3) === 0,
+    (f, c) => (((f * c) % 2) + ((f * c) % 3)) % 2 === 0,
+    (f, c) => (((f + c) % 2) + ((f * c) % 3)) % 2 === 0,
+  ];
+
+  // 15 bits: 5 de datos (nivel + máscara) y 10 de BCH, todo con una máscara fija.
+  function formato(mascara) {
+    const datos = (0b00 << 3) | mascara; // 00 = nivel M
+    let v = datos << 10;
+    for (let i = 4; i >= 0; i--) if (v & (1 << (i + 10))) v ^= 0x537 << i;
+    return ((datos << 10) | v) ^ 0x5412;
+  }
+
+  function ponerFormato(m, mascara) {
+    const n = m.length;
+    const f = formato(mascara);
+    const bit = (i) => (f >> i) & 1;
+
+    // Primera copia, repartida alrededor de la esquina superior izquierda.
+    for (let i = 0; i <= 5; i++) m[8][i] = bit(14 - i);
+    m[8][7] = bit(8);
+    m[8][8] = bit(7);
+    m[7][8] = bit(6);
+    for (let i = 0; i <= 5; i++) m[i][8] = bit(i);
+
+    // Segunda copia, repartida entre las otras dos esquinas.
+    for (let i = 0; i <= 6; i++) m[n - 1 - i][8] = bit(14 - i);
+    for (let j = 0; j <= 7; j++) m[8][n - 8 + j] = bit(7 - j);
+
+    m[n - 8][8] = 1;
+  }
+
+  /* --- Puntaje: se elige la máscara que deja el dibujo más fácil de leer --- */
+
+  // La proporción 1:1:3:1:1 del patrón de localización. Penaliza si aparece
+  // suelta en el dibujo, porque un lector la puede confundir con una esquina.
+  const CASI_LOCALIZACION = [1, 0, 1, 1, 1, 0, 1];
+
+  function puntaje(m) {
+    const n = m.length;
+    let p = 0;
+
+    // Regla 1: series de cinco o más módulos del mismo color.
+    for (let i = 0; i < n; i++) {
+      for (const leer of [(k) => m[i][k], (k) => m[k][i]]) {
+        let serie = 1;
+        for (let k = 1; k < n; k++) {
+          if (leer(k) === leer(k - 1)) {
+            serie++;
+          } else {
+            if (serie >= 5) p += serie - 2;
+            serie = 1;
+          }
+        }
+        if (serie >= 5) p += serie - 2;
+      }
+    }
+
+    // Regla 2: bloques de 2x2 del mismo color.
+    for (let f = 0; f < n - 1; f++) {
+      for (let c = 0; c < n - 1; c++) {
+        const v = m[f][c];
+        if (v === m[f][c + 1] && v === m[f + 1][c] && v === m[f + 1][c + 1]) p += 3;
+      }
+    }
+
+    // Regla 3: la proporción 1:1:3:1:1 con una zona clara de cuatro módulos a
+    // alguno de los dos lados. Contra el borde del símbolo también cuenta,
+    // porque ahí la zona clara la pone el margen blanco.
+    const claro = (leer, desde, hasta) => {
+      for (let k = Math.max(desde, 0); k < Math.min(hasta, n); k++) if (leer(k)) return false;
+      return true;
+    };
+    for (let i = 0; i < n; i++) {
+      for (const leer of [(k) => m[i][k], (k) => m[k][i]]) {
+        let k = 0;
+        while (k + 7 <= n) {
+          let igual = true;
+          for (let j = 0; j < 7 && igual; j++) if (leer(k + j) !== CASI_LOCALIZACION[j]) igual = false;
+          if (!igual) {
+            k++;
+          } else if (k === 0 || k === n - 7 || claro(leer, k - 4, k) || claro(leer, k + 7, k + 11)) {
+            p += 40;
+            k += 7;
+          } else {
+            // Sin zona clara suficiente: el siguiente calce posible empieza
+            // dentro de los tres módulos oscuros del centro.
+            k += 4;
+          }
+        }
+      }
+    }
+
+    // Regla 4: cuánto se aleja del 50% de módulos oscuros.
+    let oscuros = 0;
+    for (let f = 0; f < n; f++) for (let c = 0; c < n; c++) oscuros += m[f][c];
+    p += Math.floor(Math.abs((oscuros * 100) / (n * n) - 50) / 5) * 10;
+
+    return p;
+  }
+
+  /* --- Interfaz pública --- */
+
+  // Devuelve la cuadrícula del QR: un arreglo de filas de 0 y 1.
+  function generar(texto) {
+    const bytes = Array.from(new TextEncoder().encode(String(texto)));
+    const cfg = VERSIONES.find((v) => CABECERA + bytes.length * 8 <= v.datos * 8);
+    if (!cfg) throw new Error('El texto no cabe en el QR: el máximo son 42 caracteres.');
+
+    const datos = palabras(bytes, cfg);
+    const flujo = [];
+    datos.concat(correccion(datos, cfg.ec)).forEach((v) => {
+      for (let i = 7; i >= 0; i--) flujo.push((v >> i) & 1);
+    });
+
+    const base = cuadricula(cfg, flujo);
+    let mejor = null;
+    let mejorMascara = 0;
+    let mejorPuntaje = Infinity;
+
+    // La norma es explícita: la máscara se evalúa sobre el dibujo sin la
+    // información de formato, y recién después se escribe la del ganador.
+    for (let k = 0; k < 8; k++) {
+      const m = base.m.map((fila) => fila.slice());
+      for (let f = 0; f < m.length; f++) {
+        for (let c = 0; c < m.length; c++) {
+          if (!base.fijo[f][c] && MASCARAS[k](f, c)) m[f][c] ^= 1;
+        }
+      }
+      const p = puntaje(m);
+      if (p < mejorPuntaje) {
+        mejorPuntaje = p;
+        mejorMascara = k;
+        mejor = m;
+      }
+    }
+
+    ponerFormato(mejor, mejorMascara);
+    return mejor;
+  }
+
+  // Devuelve el QR como SVG, listo para meter en el HTML o imprimir.
+  // El borde blanco de 4 módulos no es decorativo: sin él los lectores fallan.
+  function svg(texto, borde = 4) {
+    const m = generar(texto);
+    const n = m.length;
+    const total = n + borde * 2;
+    let trazo = '';
+
+    for (let f = 0; f < n; f++) {
+      for (let c = 0; c < n; c++) {
+        if (m[f][c]) trazo += `M${c + borde} ${f + borde}h1v1h-1z`;
+      }
+    }
+
+    return (
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${total} ${total}" ` +
+      `shape-rendering="crispEdges" role="img" aria-label="Código QR ${texto}">` +
+      `<rect width="${total}" height="${total}" fill="#fff"/>` +
+      `<path d="${trazo}" fill="#000"/></svg>`
+    );
+  }
+
+  return { generar, svg };
+})();
+
+if (typeof module !== 'undefined' && module.exports) module.exports = QR;
+
+</script>
+<script>
+/* Custodia de equipaje — toda la lógica de la aplicación.
+   Sin dependencias ni servidor: se abre y funciona, con o sin internet. */
+
+(() => {
+  'use strict';
+
+  const AJUSTES_INICIALES = {
+    evento: 'Custodia de equipaje',
+    zonas: ['A', 'B', 'C'],
+    posiciones: 20,
+  };
+
+  const ATAJOS = ['Mochila', 'Bolso', 'Maleta', 'Cartera', 'Bolsa', 'Coche', 'Abrigo'];
+
+  const estado = {
+    ajustes: { ...AJUSTES_INICIALES },
+    registros: [],
+    respaldadoEn: 0, // cuántos cambios llevaba el registro en el último respaldo
+    cambios: 0,
+  };
+
+  const $ = (sel) => document.querySelector(sel);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  /* ══════════════════════════ Guardado ══════════════════════════
+     Primero se intenta IndexedDB, que no tiene un tope incómodo. Algunos
+     navegadores no la permiten cuando la página se abre directamente desde
+     el disco; ahí se cae a localStorage, que aguanta unos 5 MB, y por eso las
+     fotos se achican más en ese modo. Si tampoco hay, todo queda en memoria
+     y se avisa en pantalla, porque así sí se pierde al recargar. */
+
+  const Almacen = {
+    modo: 'memoria',
+    bd: null,
+
+    async iniciar() {
+      try {
+        this.bd = await this.abrirIDB();
+        this.modo = 'indexeddb';
+        return;
+      } catch (_) {
+        /* sigue con el plan B */
+      }
+      try {
+        localStorage.setItem('custodia:prueba', '1');
+        localStorage.removeItem('custodia:prueba');
+        this.modo = 'localstorage';
+      } catch (_) {
+        this.modo = 'memoria';
+      }
+    },
+
+    abrirIDB() {
+      return new Promise((resolver, rechazar) => {
+        let solicitud;
+        try {
+          solicitud = indexedDB.open('custodia', 1);
+        } catch (error) {
+          return rechazar(error);
+        }
+        solicitud.onupgradeneeded = () => {
+          const bd = solicitud.result;
+          if (!bd.objectStoreNames.contains('estado')) bd.createObjectStore('estado');
+        };
+        solicitud.onsuccess = () => resolver(solicitud.result);
+        solicitud.onerror = () => rechazar(solicitud.error);
+        solicitud.onblocked = () => rechazar(new Error('base bloqueada'));
+      });
+    },
+
+    async leer() {
+      if (this.modo === 'indexeddb') {
+        return new Promise((resolver, rechazar) => {
+          const t = this.bd.transaction('estado', 'readonly').objectStore('estado').get('todo');
+          t.onsuccess = () => resolver(t.result || null);
+          t.onerror = () => rechazar(t.error);
+        });
+      }
+      if (this.modo === 'localstorage') {
+        const crudo = localStorage.getItem('custodia:estado');
+        return crudo ? JSON.parse(crudo) : null;
+      }
+      return null;
+    },
+
+    async escribir(datos) {
+      if (this.modo === 'indexeddb') {
+        return new Promise((resolver, rechazar) => {
+          const t = this.bd.transaction('estado', 'readwrite').objectStore('estado').put(datos, 'todo');
+          t.onsuccess = () => resolver();
+          t.onerror = () => rechazar(t.error);
+        });
+      }
+      if (this.modo === 'localstorage') {
+        localStorage.setItem('custodia:estado', JSON.stringify(datos));
+      }
+    },
+
+    async borrar() {
+      if (this.modo === 'indexeddb') {
+        return new Promise((resolver) => {
+          const t = this.bd.transaction('estado', 'readwrite').objectStore('estado').delete('todo');
+          t.onsuccess = t.onerror = () => resolver();
+        });
+      }
+      if (this.modo === 'localstorage') localStorage.removeItem('custodia:estado');
+    },
+  };
+
+  async function guardar() {
+    const datos = {
+      ajustes: estado.ajustes,
+      registros: estado.registros,
+      respaldadoEn: estado.respaldadoEn,
+      cambios: estado.cambios,
+    };
+    try {
+      await Almacen.escribir(datos);
+    } catch (error) {
+      const lleno = /quota|exceeded/i.test(String(error && error.name) + String(error && error.message));
+      avisar(
+        lleno
+          ? 'No queda espacio para guardar. Descarga un respaldo y saca fotos de los registros ya entregados.'
+          : 'No se pudo guardar el último cambio. Descarga un respaldo por si acaso.',
+        false
+      );
+      throw error;
+    }
+  }
+
+  /* ══════════════════════════ Utilidades ══════════════════════════ */
+
+  const escapar = (texto) =>
+    String(texto == null ? '' : texto).replace(/[&<>"']/g, (c) =>
+      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])
+    );
+
+  const normalizar = (texto) =>
+    String(texto || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // saca las tildes: «Muñoz» encuentra a «munoz»
+      .toLowerCase()
+      .trim();
+
+  const codigo = (numero) => String(numero).padStart(2, '0');
+
+  const hora = (iso) =>
+    iso ? new Date(iso).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' }) : '';
+
+  const fechaHora = (iso) => (iso ? new Date(iso).toLocaleString('es-CL') : '');
+
+  const ubicacionDe = (r) => (r.zona ? `${r.zona}-${r.posicion}` : 'sin ubicación');
+
+  function avisar(mensaje, bien = true) {
+    const caja = $('#alerta');
+    caja.textContent = mensaje;
+    caja.className = 'alerta' + (bien ? ' alerta--ok' : '');
+    caja.hidden = false;
+    clearTimeout(avisar.reloj);
+    avisar.reloj = setTimeout(() => {
+      caja.hidden = true;
+    }, bien ? 3500 : 9000);
+  }
+
+  function descargar(nombre, contenido, tipo) {
+    const enlace = document.createElement('a');
+    enlace.href = URL.createObjectURL(new Blob([contenido], { type: tipo }));
+    enlace.download = nombre;
+    document.body.appendChild(enlace);
+    enlace.click();
+    enlace.remove();
+    setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
+  }
+
+  const enCustodia = () => estado.registros.filter((r) => !r.entrega);
+  const buscarRegistro = (numero) => estado.registros.find((r) => r.numero === numero);
+
+  function siguienteNumero() {
+    let n = 1;
+    while (buscarRegistro(n)) n++;
+    return n;
+  }
+
+  function ocupadas(zona) {
+    return new Set(enCustodia().filter((r) => r.zona === zona).map((r) => r.posicion));
+  }
+
+  function primeraLibre(zona) {
+    const usadas = ocupadas(zona);
+    for (let i = 1; i <= estado.ajustes.posiciones; i++) if (!usadas.has(i)) return i;
+    return null;
+  }
+
+  /* ══════════════════════════ Tickets ══════════════════════════ */
+
+  function ticketHTML(numero, extra = '') {
+    const cod = codigo(numero);
+    const qr = QR.svg(cod);
+    const evento = escapar(estado.ajustes.evento);
+    const mitad = (rol) => `
+      <div class="ticket__mitad">
+        <div class="ticket__qr">${qr}</div>
+        <div class="ticket__texto">
+          <div class="ticket__evento">${evento}</div>
+          <div class="ticket__numero">${cod}</div>
+          <div class="ticket__rol">${rol}</div>
+        </div>
+      </div>`;
+    return `<div class="ticket ${extra}">${mitad('pegar al equipaje')}${mitad('para la persona')}</div>`;
+  }
+
+  function imprimir(html) {
+    $('#lamina').innerHTML = html;
+    window.print();
+  }
+
+  /* ══════════════════════════ Pestañas ══════════════════════════ */
+
+  function mostrarPanel(nombre) {
+    $$('.pestana').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.panel === nombre)));
+    $$('.panel').forEach((p) => {
+      p.hidden = p.id !== `panel-${nombre}`;
+    });
+    if (nombre === 'entregar') {
+      $('#e-busca').focus();
+      $('#e-busca').select();
+    }
+    if (nombre === 'listado') pintarListado();
+    if (nombre === 'ajustes') pintarAjustes();
+  }
+
+  /* ══════════════════════════ Recibir ══════════════════════════ */
+
+  const recibir = {
+    foto: null,
+    zona: null,
+    posicion: null,
+    ultimo: null, // el ticket recién emitido, para poder reimprimirlo
+  };
+
+  function pintarZonas() {
+    const caja = $('#r-zonas');
+    caja.innerHTML = estado.ajustes.zonas
+      .map(
+        (z) =>
+          `<button type="button" class="zona" role="radio" data-zona="${escapar(z)}" ` +
+          `aria-checked="${z === recibir.zona}">${escapar(z)}</button>`
+      )
+      .join('');
+    pintarPosiciones();
+  }
+
+  function pintarPosiciones() {
+    const caja = $('#r-posiciones');
+    if (!recibir.zona) {
+      caja.innerHTML = '';
+      $('#r-ubicacion-elegida').textContent = 'Elige una zona.';
+      return;
+    }
+    const usadas = ocupadas(recibir.zona);
+    let html = '';
+    for (let i = 1; i <= estado.ajustes.posiciones; i++) {
+      const ocupada = usadas.has(i);
+      html +=
+        `<button type="button" class="posicion${ocupada ? ' posicion--ocupada' : ''}" role="radio" ` +
+        `data-posicion="${i}" aria-checked="${recibir.posicion === i}" ` +
+        `${ocupada ? 'disabled aria-label="Posición ' + i + ', ocupada"' : ''}>${i}</button>`;
+    }
+    caja.innerHTML = html;
+    $('#r-ubicacion-elegida').textContent = recibir.posicion
+      ? `Queda en ${recibir.zona}-${recibir.posicion}.`
+      : 'Elige una posición.';
+  }
+
+  function prepararRecibir() {
+    recibir.foto = null;
+    recibir.posicion = null;
+    $('#forma-recibir').reset();
+    $('#r-numero').value = siguienteNumero();
+    $('#r-bultos').value = 1;
+    $('#r-foto-vista').hidden = true;
+    $('#r-foto-vista').removeAttribute('src');
+    $('#r-foto-quitar').hidden = true;
+    if (!recibir.zona || !estado.ajustes.zonas.includes(recibir.zona)) {
+      recibir.zona = estado.ajustes.zonas[0] || null;
+    }
+    recibir.posicion = recibir.zona ? primeraLibre(recibir.zona) : null;
+    pintarZonas();
+    $('#comprobante').hidden = true;
+    $('#forma-recibir').hidden = false;
+    $('#r-nombre').focus();
+  }
+
+  // Las fotos se achican bastante a propósito. Sirven para reconocer un bulto,
+  // no para ampliarlas, y con localStorage el espacio se acaba rápido.
+  function comprimirFoto(archivo) {
+    const lado = Almacen.modo === 'localstorage' ? 560 : 900;
+    const calidad = Almacen.modo === 'localstorage' ? 0.55 : 0.72;
+    return new Promise((resolver, rechazar) => {
+      const lector = new FileReader();
+      lector.onerror = () => rechazar(new Error('No se pudo leer la foto.'));
+      lector.onload = () => {
+        const img = new Image();
+        img.onerror = () => rechazar(new Error('No se pudo abrir la foto.'));
+        img.onload = () => {
+          const escala = Math.min(1, lado / Math.max(img.width, img.height));
+          const lienzo = document.createElement('canvas');
+          lienzo.width = Math.max(1, Math.round(img.width * escala));
+          lienzo.height = Math.max(1, Math.round(img.height * escala));
+          lienzo.getContext('2d').drawImage(img, 0, 0, lienzo.width, lienzo.height);
+          resolver(lienzo.toDataURL('image/jpeg', calidad));
+        };
+        img.src = lector.result;
+      };
+      lector.readAsDataURL(archivo);
+    });
+  }
+
+  async function guardarRecibido(evento) {
+    evento.preventDefault();
+
+    const numero = Number($('#r-numero').value);
+    const nombre = $('#r-nombre').value.trim();
+
+    if (!nombre) return avisar('Falta el nombre.', false);
+    if (!numero || numero < 1) return avisar('El número de ticket no es válido.', false);
+    if (buscarRegistro(numero)) {
+      return avisar(`El ticket ${codigo(numero)} ya está usado. Prueba con otro número.`, false);
+    }
+    if (!recibir.zona || !recibir.posicion) return avisar('Falta indicar dónde queda el equipaje.', false);
+
+    estado.registros.push({
+      numero,
+      nombre,
+      telefono: $('#r-telefono').value.trim(),
+      bultos: Math.max(1, Number($('#r-bultos').value) || 1),
+      descripcion: $('#r-descripcion').value.trim(),
+      foto: recibir.foto,
+      zona: recibir.zona,
+      posicion: recibir.posicion,
+      ingreso: new Date().toISOString(),
+      entrega: null,
+    });
+    estado.cambios++;
+
+    try {
+      await guardar();
+    } catch (_) {
+      estado.registros.pop();
+      estado.cambios--;
+      return;
+    }
+
+    recibir.ultimo = numero;
+    $('#comprobante-ticket').innerHTML = ticketHTML(numero, 'ticket--solo');
+    $('#forma-recibir').hidden = true;
+    $('#comprobante').hidden = false;
+    $('#recibir-otro').focus();
+    actualizarResumen();
+  }
+
+  /* ══════════════════════════ Entregar ══════════════════════════ */
+
+  let elegido = null;
+
+  function coincide(registro, consulta) {
+    if (!consulta) return false;
+    if (/^\d+$/.test(consulta)) {
+      if (registro.numero === Number(consulta)) return true;
+      // Con tres dígitos o más ya vale la pena buscar por teléfono; con uno o
+      // dos calzaría con medio mundo.
+      const telefono = String(registro.telefono || '').replace(/\D/g, '');
+      return consulta.length >= 3 && telefono.includes(consulta);
+    }
+    return (
+      normalizar(registro.nombre).includes(consulta) ||
+      normalizar(registro.descripcion).includes(consulta) ||
+      normalizar(ubicacionDe(registro)).includes(consulta)
+    );
+  }
+
+  function buscarEntrega() {
+    const consulta = normalizar($('#e-busca').value);
+    const caja = $('#e-resultados');
+    elegido = null;
+    $('#e-ficha').innerHTML = '';
+
+    if (!consulta) {
+      caja.innerHTML = '';
+      return;
+    }
+
+    const hallados = estado.registros
+      .filter((r) => coincide(r, consulta))
+      .sort((a, b) => Number(Boolean(a.entrega)) - Number(Boolean(b.entrega)) || a.numero - b.numero);
+
+    if (!hallados.length) {
+      caja.innerHTML = '<p class="vacio">Nada con eso. Prueba con el nombre, o revisa el listado.</p>';
+      return;
+    }
+
+    if (hallados.length === 1) {
+      caja.innerHTML = '';
+      mostrarFicha(hallados[0]);
+      return;
+    }
+
+    caja.innerHTML = hallados
+      .map(
+        (r) => `
+      <button type="button" class="resultado${r.entrega ? ' resultado--entregado' : ''}" data-numero="${r.numero}">
+        <span class="resultado__numero">${codigo(r.numero)}</span>
+        <span>
+          <span class="resultado__nombre">${escapar(r.nombre)}</span>
+          <span class="resultado__detalle">${escapar(ubicacionDe(r))} · ${escapar(r.descripcion || (r.bultos + ' bulto(s)'))}${
+            r.entrega ? ' · ya entregado' : ''
+          }</span>
+        </span>
+      </button>`
+      )
+      .join('');
+  }
+
+  function mostrarFicha(registro) {
+    elegido = registro.numero;
+    const foto = registro.foto
+      ? `<img class="ficha__foto" src="${registro.foto}" alt="Foto del equipaje del ticket ${codigo(registro.numero)}">`
+      : '';
+
+    $('#e-ficha').innerHTML = `
+      <div class="tarjeta">
+        <div class="ficha">
+          <div>
+            <p class="ficha__etiqueta">Ticket ${codigo(registro.numero)} · ${escapar(registro.nombre)}</p>
+            <p class="ficha__ubicacion">${escapar(ubicacionDe(registro))}</p>
+            <p class="ficha__dato">${registro.bultos} bulto(s)${
+              registro.descripcion ? ' · ' + escapar(registro.descripcion) : ''
+            }</p>
+            <p class="ficha__dato"><span class="ficha__etiqueta">Recibido a las ${hora(registro.ingreso)}</span></p>
+            ${
+              registro.entrega
+                ? `<p class="ficha__entregado">Ya fue entregado a las ${hora(registro.entrega)}.
+                     <button type="button" class="boton boton--texto" id="e-deshacer">Deshacer</button></p>`
+                : '<button type="button" class="boton boton--principal boton--ancho" id="e-entregar">Marcar como entregado</button>'
+            }
+          </div>
+          ${foto}
+        </div>
+      </div>`;
+
+    const botonEntregar = $('#e-entregar');
+    if (botonEntregar) botonEntregar.focus();
+  }
+
+  async function marcarEntrega(numero, entregado) {
+    const registro = buscarRegistro(numero);
+    if (!registro) return;
+    const antes = registro.entrega;
+    registro.entrega = entregado ? new Date().toISOString() : null;
+    estado.cambios++;
+    try {
+      await guardar();
+    } catch (_) {
+      registro.entrega = antes;
+      estado.cambios--;
+      return;
+    }
+    actualizarResumen();
+    mostrarFicha(registro);
+    if (entregado) {
+      avisar(`Ticket ${codigo(numero)} entregado.`);
+      setTimeout(() => {
+        $('#e-busca').value = '';
+        $('#e-busca').focus();
+        buscarEntrega();
+      }, 1200);
+    }
+  }
+
+  /* ── Cámara para escanear ── */
+
+  const escaner = { flujo: null, detector: null, corriendo: false };
+
+  async function abrirCamara() {
+    try {
+      escaner.flujo = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } },
+      });
+    } catch (_) {
+      return avisar('No se pudo abrir la cámara. Escribe el número del ticket, es igual de rápido.', false);
+    }
+    const video = $('#e-video');
+    video.srcObject = escaner.flujo;
+    await video.play();
+    $('#e-camara').hidden = false;
+    escaner.detector = new window.BarcodeDetector({ formats: ['qr_code'] });
+    escaner.corriendo = true;
+    revisarCuadro();
+  }
+
+  async function revisarCuadro() {
+    if (!escaner.corriendo) return;
+    try {
+      const marcas = await escaner.detector.detect($('#e-video'));
+      const texto = marcas.length ? String(marcas[0].rawValue).trim() : '';
+      if (/^\d+$/.test(texto)) {
+        cerrarCamara();
+        $('#e-busca').value = texto;
+        buscarEntrega();
+        return;
+      }
+    } catch (_) {
+      /* un cuadro fallido no importa: se prueba con el siguiente */
+    }
+    requestAnimationFrame(revisarCuadro);
+  }
+
+  function cerrarCamara() {
+    escaner.corriendo = false;
+    if (escaner.flujo) escaner.flujo.getTracks().forEach((t) => t.stop());
+    escaner.flujo = null;
+    $('#e-camara').hidden = true;
+  }
+
+  /* ══════════════════════════ Listado ══════════════════════════ */
+
+  let filtro = 'custodia';
+
+  function registrosFiltrados() {
+    const consulta = normalizar($('#l-busca').value);
+    return estado.registros
+      .filter((r) => (filtro === 'todos' ? true : filtro === 'custodia' ? !r.entrega : Boolean(r.entrega)))
+      .filter((r) => !consulta || coincide(r, consulta))
+      .sort((a, b) => a.numero - b.numero);
+  }
+
+  function pintarListado() {
+    const filas = registrosFiltrados();
+    if (!filas.length) {
+      $('#l-tabla').innerHTML = '<p class="vacio">Nada por aquí todavía.</p>';
+      return;
+    }
+    $('#l-tabla').innerHTML = `
+      <table>
+        <thead><tr>
+          <th>Ticket</th><th>Nombre</th><th>Equipaje</th><th>Lugar</th><th>Entró</th><th>Estado</th>
+        </tr></thead>
+        <tbody>${filas
+          .map(
+            (r) => `<tr>
+            <td class="num">${codigo(r.numero)}</td>
+            <td>${escapar(r.nombre)}${
+              r.telefono ? `<br><span class="resultado__detalle">${escapar(r.telefono)}</span>` : ''
+            }</td>
+            <td>${r.bultos} bulto(s)${r.descripcion ? '<br>' + escapar(r.descripcion) : ''}</td>
+            <td>${escapar(ubicacionDe(r))}</td>
+            <td>${hora(r.ingreso)}</td>
+            <td class="${r.entrega ? 'estado--entregado' : 'estado--custodia'}">${
+              r.entrega ? 'Entregado ' + hora(r.entrega) : 'En custodia'
+            }</td>
+          </tr>`
+          )
+          .join('')}</tbody>
+      </table>`;
+  }
+
+  function exportarCSV() {
+    const cabecera = ['Ticket', 'Nombre', 'Telefono', 'Bultos', 'Descripcion', 'Zona', 'Posicion', 'Ingreso', 'Entrega'];
+    const celda = (v) => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
+    const filas = estado.registros
+      .slice()
+      .sort((a, b) => a.numero - b.numero)
+      .map((r) =>
+        [codigo(r.numero), r.nombre, r.telefono, r.bultos, r.descripcion, r.zona, r.posicion, fechaHora(r.ingreso), fechaHora(r.entrega)]
+          .map(celda)
+          .join(';')
+      );
+    // El punto y coma y el BOM son para que Excel en español lo abra bien.
+    descargar('custodia.csv', '﻿' + [cabecera.map(celda).join(';'), ...filas].join('\r\n'), 'text/csv');
+  }
+
+  /* ══════════════════════════ Lámina de tickets ══════════════════════════ */
+
+  let lamina = '';
+
+  function laminaHTML(desde, hasta) {
+    let html = '<div class="hoja">';
+    for (let n = desde; n <= hasta; n++) html += ticketHTML(n);
+    return html + '</div>';
+  }
+
+  function prepararLamina() {
+    const desde = Math.max(1, Number($('#t-desde').value) || 1);
+    const hasta = Math.min(999, Number($('#t-hasta').value) || desde);
+    if (hasta < desde) return avisar('El «hasta» tiene que ser mayor que el «desde».', false);
+    if (hasta - desde > 300) return avisar('Son demasiados tickets de una vez. Hazlo por tandas de 300.', false);
+
+    lamina = laminaHTML(desde, hasta);
+    $('#t-muestra').innerHTML = lamina;
+    $('#t-vista').hidden = false;
+    $('#t-imprimir').hidden = false;
+    avisar(`${hasta - desde + 1} tickets listos, del ${codigo(desde)} al ${codigo(hasta)}.`);
+  }
+
+  /* ══════════════════════════ Ajustes y respaldo ══════════════════════════ */
+
+  function pintarAjustes() {
+    $('#a-evento').value = estado.ajustes.evento;
+    $('#a-zonas').value = estado.ajustes.zonas.join(', ');
+    $('#a-posiciones').value = estado.ajustes.posiciones;
+
+    const donde = {
+      indexeddb: 'Guardado en la base del navegador. Hay espacio de sobra.',
+      localstorage:
+        'Guardado en el almacenamiento del navegador, que tiene unos 5 MB. Las fotos se achican para que quepan.',
+      memoria:
+        'ATENCIÓN: este navegador no deja guardar nada. Si recargas la página se pierde todo. Ábrela en otro navegador.',
+    }[Almacen.modo];
+
+    const pesa = JSON.stringify(estado.registros).length;
+    const conFoto = estado.registros.filter((r) => r.foto).length;
+    $('#a-espacio').textContent =
+      `${donde} Hoy hay ${estado.registros.length} registro(s), ${conFoto} con foto, ` +
+      `ocupando alrededor de ${(pesa / 1048576).toFixed(1)} MB.`;
+  }
+
+  async function guardarAjustes(evento) {
+    evento.preventDefault();
+    const zonas = $('#a-zonas').value
+      .split(',')
+      .map((z) => z.trim())
+      .filter(Boolean);
+    if (!zonas.length) return avisar('Tiene que haber al menos una zona.', false);
+
+    estado.ajustes = {
+      evento: $('#a-evento').value.trim() || AJUSTES_INICIALES.evento,
+      zonas,
+      posiciones: Math.min(99, Math.max(1, Number($('#a-posiciones').value) || 20)),
+    };
+    estado.cambios++;
+    await guardar();
+    aplicarAjustes();
+    avisar('Ajustes guardados.');
+  }
+
+  function aplicarAjustes() {
+    document.title = estado.ajustes.evento;
+    $('#titulo-evento').textContent = estado.ajustes.evento;
+    if (!estado.ajustes.zonas.includes(recibir.zona)) {
+      recibir.zona = estado.ajustes.zonas[0] || null;
+      recibir.posicion = recibir.zona ? primeraLibre(recibir.zona) : null;
+    }
+    pintarZonas();
+    actualizarResumen();
+  }
+
+  function actualizarResumen() {
+    const total = estado.registros.length;
+    const dentro = enCustodia().length;
+    $('#resumen').textContent = total
+      ? `${dentro} en custodia · ${total - dentro} entregados · ${total} en total`
+      : 'Todavía no hay equipaje registrado.';
+
+    const pendientes = Math.max(0, estado.cambios - estado.respaldadoEn);
+    const insignia = $('#pendientes');
+    insignia.textContent = pendientes;
+    insignia.hidden = pendientes === 0;
+  }
+
+  function exportarRespaldo() {
+    const sello = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
+    descargar(
+      `custodia-respaldo-${sello}.json`,
+      JSON.stringify({ version: 1, ajustes: estado.ajustes, registros: estado.registros }, null, 1),
+      'application/json'
+    );
+    estado.respaldadoEn = estado.cambios;
+    guardar().catch(() => {});
+    actualizarResumen();
+  }
+
+  async function importarRespaldo(archivo) {
+    let datos;
+    try {
+      datos = JSON.parse(await archivo.text());
+    } catch (_) {
+      return avisar('Ese archivo no se puede leer. ¿Es el respaldo correcto?', false);
+    }
+    if (!datos || !Array.isArray(datos.registros)) {
+      return avisar('Ese archivo no tiene registros de custodia.', false);
+    }
+    if (estado.registros.length && !confirm(
+      `Vas a reemplazar los ${estado.registros.length} registro(s) de ahora por los ${datos.registros.length} del respaldo. ¿Seguir?`
+    )) return;
+
+    estado.ajustes = { ...AJUSTES_INICIALES, ...(datos.ajustes || {}) };
+    estado.registros = datos.registros;
+    estado.cambios++;
+    await guardar();
+    aplicarAjustes();
+    prepararRecibir();
+    pintarListado();
+    pintarAjustes();
+    avisar(`Respaldo cargado: ${datos.registros.length} registro(s).`);
+  }
+
+  async function borrarTodo() {
+    if ($('#a-confirmar').value.trim().toUpperCase() !== 'BORRAR') {
+      return avisar('Para borrar todo, escribe BORRAR en el recuadro.', false);
+    }
+    estado.registros = [];
+    estado.ajustes = { ...AJUSTES_INICIALES };
+    estado.cambios = 0;
+    estado.respaldadoEn = 0;
+    await Almacen.borrar();
+    $('#a-confirmar').value = '';
+    aplicarAjustes();
+    prepararRecibir();
+    pintarListado();
+    pintarAjustes();
+    avisar('Todo borrado.');
+  }
+
+  /* ══════════════════════════ Conexiones ══════════════════════════ */
+
+  function conectar() {
+    $$('.pestana').forEach((b) => b.addEventListener('click', () => mostrarPanel(b.dataset.panel)));
+
+    // Recibir
+    $('#forma-recibir').addEventListener('submit', guardarRecibido);
+    $('#recibir-otro').addEventListener('click', prepararRecibir);
+    $('#imprimir-comprobante').addEventListener('click', () => {
+      if (recibir.ultimo != null) imprimir(ticketHTML(recibir.ultimo, 'ticket--solo'));
+    });
+
+    $('#r-atajos').innerHTML = ATAJOS.map(
+      (a) => `<button type="button" class="atajo">${a}</button>`
+    ).join('');
+    $('#r-atajos').addEventListener('click', (e) => {
+      if (!e.target.classList.contains('atajo')) return;
+      const campo = $('#r-descripcion');
+      campo.value = (campo.value ? campo.value.trim() + ' ' : '') + e.target.textContent.toLowerCase();
+      campo.focus();
+    });
+
+    $('#r-zonas').addEventListener('click', (e) => {
+      const boton = e.target.closest('.zona');
+      if (!boton) return;
+      recibir.zona = boton.dataset.zona;
+      recibir.posicion = primeraLibre(recibir.zona);
+      pintarZonas();
+    });
+
+    $('#r-posiciones').addEventListener('click', (e) => {
+      const boton = e.target.closest('.posicion');
+      if (!boton || boton.disabled) return;
+      recibir.posicion = Number(boton.dataset.posicion);
+      pintarPosiciones();
+    });
+
+    $('#r-foto-boton').addEventListener('click', () => $('#r-foto').click());
+    $('#r-foto').addEventListener('change', async (e) => {
+      const archivo = e.target.files && e.target.files[0];
+      if (!archivo) return;
+      try {
+        recibir.foto = await comprimirFoto(archivo);
+        $('#r-foto-vista').src = recibir.foto;
+        $('#r-foto-vista').hidden = false;
+        $('#r-foto-quitar').hidden = false;
+      } catch (error) {
+        avisar(error.message, false);
+      }
+    });
+    $('#r-foto-quitar').addEventListener('click', () => {
+      recibir.foto = null;
+      $('#r-foto').value = '';
+      $('#r-foto-vista').hidden = true;
+      $('#r-foto-quitar').hidden = true;
+    });
+
+    // Entregar
+    $('#e-busca').addEventListener('input', buscarEntrega);
+    $('#e-resultados').addEventListener('click', (e) => {
+      const boton = e.target.closest('.resultado');
+      if (boton) mostrarFicha(buscarRegistro(Number(boton.dataset.numero)));
+    });
+    $('#e-ficha').addEventListener('click', (e) => {
+      if (e.target.id === 'e-entregar') marcarEntrega(elegido, true);
+      if (e.target.id === 'e-deshacer') marcarEntrega(elegido, false);
+    });
+
+    if ('BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      $('#e-escanear').hidden = false;
+      $('#e-escanear').addEventListener('click', abrirCamara);
+      $('#e-cerrar-camara').addEventListener('click', cerrarCamara);
+    }
+
+    // Listado
+    $('#l-filtros').addEventListener('click', (e) => {
+      const boton = e.target.closest('.filtro');
+      if (!boton) return;
+      filtro = boton.dataset.filtro;
+      $$('.filtro').forEach((b) => b.classList.toggle('filtro--activo', b === boton));
+      pintarListado();
+    });
+    $('#l-busca').addEventListener('input', pintarListado);
+    $('#l-csv').addEventListener('click', exportarCSV);
+
+    // Tickets
+    $('#t-generar').addEventListener('click', prepararLamina);
+    $('#t-imprimir').addEventListener('click', () => imprimir(lamina));
+
+    // Ajustes
+    $('#forma-ajustes').addEventListener('submit', guardarAjustes);
+    $('#respaldar').addEventListener('click', exportarRespaldo);
+    $('#a-exportar').addEventListener('click', exportarRespaldo);
+    $('#a-importar-boton').addEventListener('click', () => $('#a-importar').click());
+    $('#a-importar').addEventListener('change', (e) => {
+      const archivo = e.target.files && e.target.files[0];
+      if (archivo) importarRespaldo(archivo);
+      e.target.value = '';
+    });
+    $('#a-borrar').addEventListener('click', borrarTodo);
+  }
+
+  /* ══════════════════════════ Arranque ══════════════════════════ */
+
+  async function iniciar() {
+    await Almacen.iniciar();
+
+    let guardado = null;
+    try {
+      guardado = await Almacen.leer();
+    } catch (_) {
+      avisar('No se pudieron leer los datos guardados.', false);
+    }
+
+    if (guardado) {
+      estado.ajustes = { ...AJUSTES_INICIALES, ...(guardado.ajustes || {}) };
+      estado.registros = Array.isArray(guardado.registros) ? guardado.registros : [];
+      estado.cambios = guardado.cambios || 0;
+      estado.respaldadoEn = guardado.respaldadoEn || 0;
+    }
+
+    conectar();
+    aplicarAjustes();
+    prepararRecibir();
+    mostrarPanel('recibir');
+
+    if (Almacen.modo === 'memoria') {
+      avisar(
+        'Este navegador no deja guardar datos con el archivo abierto así. Si recargas se pierde todo: ' +
+          'ábrelo en Firefox, o publícalo en una dirección web.',
+        false
+      );
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', iniciar);
+})();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,366 @@
+/* Custodia de equipaje.
+   Pensado para que lo use alguien de pie, apurado y con poca luz:
+   letra grande, botones grandes y mucho contraste. */
+
+:root {
+  --fondo: #f5f3ef;
+  --papel: #ffffff;
+  --tinta: #21252c;
+  --suave: #5c6471;
+  --linea: #e3ded5;
+  --acento: #1a6154;
+  --acento-suave: #e6f0ed;
+  --peligro: #9d3324;
+  --peligro-suave: #fbeeeb;
+  --ok: #2c7048;
+  --ok-suave: #e8f2eb;
+  --sombra: 0 1px 2px rgba(33, 37, 44, .06), 0 4px 14px rgba(33, 37, 44, .05);
+  --radio: 12px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0 1rem 4rem;
+  background: var(--fondo);
+  color: var(--tinta);
+  font: 17px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1, h2 { line-height: 1.2; margin: 0; }
+h1 { font-size: 1.35rem; }
+h2 { font-size: 1.1rem; margin-bottom: .6rem; }
+
+.parrafo { margin: 0 0 1rem; color: var(--suave); }
+
+/* ── Cabecera y pestañas ─────────────────────────────────────── */
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 1.2rem 0 .8rem;
+}
+
+.cabecera__resumen { margin: .2rem 0 0; color: var(--suave); font-size: .9rem; }
+
+.pestanas {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  gap: .25rem;
+  max-width: 60rem;
+  margin: 0 auto 1.2rem;
+  padding: .35rem;
+  overflow-x: auto;
+  background: var(--papel);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.pestana {
+  flex: 1 0 auto;
+  padding: .6rem .9rem;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--suave);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pestana[aria-selected="true"] { background: var(--acento); color: #fff; }
+.pestana:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
+
+main { max-width: 60rem; margin: 0 auto; }
+
+/* ── Tarjetas y formularios ──────────────────────────────────── */
+
+.tarjeta {
+  margin-bottom: 1.2rem;
+  padding: 1.2rem;
+  background: var(--papel);
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  box-shadow: var(--sombra);
+}
+
+.tarjeta--peligro { border-color: #edd3cd; background: var(--peligro-suave); }
+.tarjeta--peligro h2 { color: var(--peligro); }
+
+.campo { display: block; margin-bottom: 1rem; border: 0; padding: 0; }
+.campo__nombre { display: block; margin-bottom: .3rem; font-size: .88rem; font-weight: 600; }
+.campo__opcional { font-weight: 400; color: var(--suave); }
+.campo__pista { margin: .35rem 0 0; font-size: .85rem; color: var(--suave); }
+.obligatorio { color: var(--peligro); }
+
+input[type="text"], input[type="tel"], input[type="number"], input[type="search"], input[type="file"] {
+  width: 100%;
+  padding: .65rem .8rem;
+  border: 1px solid #cfc8bd;
+  border-radius: 9px;
+  background: #fff;
+  color: inherit;
+  font: inherit;
+}
+
+input:focus-visible { outline: 3px solid var(--acento); outline-offset: 1px; border-color: var(--acento); }
+
+.fila { display: flex; gap: .8rem; flex-wrap: wrap; align-items: flex-end; }
+.fila > .campo { flex: 1 1 12rem; }
+.fila > .campo--angosto { flex: 0 0 8rem; }
+.fila--numero { align-items: center; margin-bottom: 1rem; }
+.fila--numero .campo__pista { flex: 1 1 12rem; margin: 0; }
+
+.numero-grande { font-size: 1.8rem; font-weight: 700; text-align: center; letter-spacing: .04em; }
+
+.atajos { display: flex; flex-wrap: wrap; gap: .4rem; margin: -.6rem 0 1rem; }
+
+.atajo {
+  padding: .35rem .7rem;
+  border: 1px solid var(--linea);
+  border-radius: 999px;
+  background: var(--fondo);
+  font: inherit;
+  font-size: .85rem;
+  color: var(--suave);
+  cursor: pointer;
+}
+
+.atajo:hover { border-color: var(--acento); color: var(--acento); }
+
+/* ── Botones ─────────────────────────────────────────────────── */
+
+.boton {
+  padding: .7rem 1.1rem;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.boton--principal { background: var(--acento); color: #fff; }
+.boton--suave { background: var(--papel); border-color: #cfc8bd; color: var(--tinta); }
+.boton--texto { background: none; color: var(--suave); text-decoration: underline; padding: .4rem .2rem; }
+.boton--peligro { background: var(--peligro); color: #fff; }
+.boton--ancho { width: 100%; padding: .95rem; font-size: 1.05rem; }
+.boton:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
+.boton[disabled] { opacity: .5; cursor: default; }
+
+.botonera { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.botonera input[type="text"] { width: auto; flex: 0 1 12rem; }
+
+.insignia {
+  display: inline-block;
+  min-width: 1.4em;
+  margin-left: .4rem;
+  padding: 0 .35em;
+  border-radius: 999px;
+  background: var(--peligro);
+  color: #fff;
+  font-size: .78rem;
+  text-align: center;
+}
+
+/* ── Aviso de arriba ─────────────────────────────────────────── */
+
+.alerta {
+  max-width: 60rem;
+  margin: 1rem auto 0;
+  padding: .8rem 1rem;
+  border-radius: var(--radio);
+  background: var(--peligro-suave);
+  border: 1px solid #edd3cd;
+  color: var(--peligro);
+  font-weight: 600;
+}
+
+.alerta--ok { background: var(--ok-suave); border-color: #cfe3d6; color: var(--ok); }
+
+/* ── Foto ────────────────────────────────────────────────────── */
+
+.foto { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.foto__vista { width: 100%; max-width: 15rem; border-radius: 9px; border: 1px solid var(--linea); }
+
+/* ── Zonas y posiciones ──────────────────────────────────────── */
+
+.zonas { display: flex; flex-wrap: wrap; gap: .4rem; margin-bottom: .8rem; }
+
+.zona {
+  min-width: 3.5rem;
+  padding: .6rem .9rem;
+  border: 1px solid #cfc8bd;
+  border-radius: 9px;
+  background: var(--papel);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.zona[aria-checked="true"] { background: var(--acento); border-color: var(--acento); color: #fff; }
+
+.posiciones { display: flex; flex-wrap: wrap; gap: .3rem; }
+
+.posicion {
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid #cfc8bd;
+  border-radius: 8px;
+  background: var(--papel);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+.posicion[aria-checked="true"] { background: var(--acento); border-color: var(--acento); color: #fff; }
+.posicion--ocupada { background: #eceae5; color: #a9a49b; border-style: dashed; cursor: not-allowed; }
+
+/* ── Entregar ────────────────────────────────────────────────── */
+
+.busca { font-size: 1.3rem; padding: .8rem 1rem; }
+.busca--chica { font-size: 1rem; flex: 1 1 10rem; width: auto; }
+
+.camara { margin-top: .8rem; }
+.camara video { width: 100%; max-width: 22rem; border-radius: var(--radio); background: #000; }
+
+.resultados { display: grid; gap: .6rem; margin-bottom: 1.2rem; }
+
+.resultado {
+  display: flex;
+  gap: .9rem;
+  align-items: center;
+  width: 100%;
+  padding: .8rem 1rem;
+  border: 1px solid var(--linea);
+  border-radius: var(--radio);
+  background: var(--papel);
+  box-shadow: var(--sombra);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.resultado__numero {
+  flex: 0 0 3rem;
+  font-size: 1.6rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--acento);
+}
+
+.resultado__nombre { font-weight: 600; }
+.resultado__detalle { font-size: .85rem; color: var(--suave); }
+.resultado--entregado .resultado__numero { color: var(--suave); }
+
+.vacio { padding: 1.2rem; text-align: center; color: var(--suave); }
+
+.ficha { display: grid; gap: 1rem; grid-template-columns: 1fr; }
+.ficha__ubicacion { font-size: 2.6rem; font-weight: 700; line-height: 1.1; color: var(--acento); }
+.ficha__etiqueta { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); }
+.ficha__foto { width: 100%; max-width: 16rem; border-radius: var(--radio); border: 1px solid var(--linea); }
+.ficha__dato { margin: 0 0 .5rem; }
+.ficha__entregado { padding: .8rem 1rem; border-radius: 9px; background: var(--ok-suave); color: var(--ok); font-weight: 600; }
+
+@media (min-width: 40rem) {
+  .ficha { grid-template-columns: 1fr auto; align-items: start; }
+}
+
+/* ── Listado ─────────────────────────────────────────────────── */
+
+.barra { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.filtros { display: flex; gap: .25rem; }
+
+.filtro {
+  padding: .5rem .8rem;
+  border: 1px solid #cfc8bd;
+  border-radius: 8px;
+  background: var(--papel);
+  font: inherit;
+  font-size: .9rem;
+  cursor: pointer;
+}
+
+.filtro--activo { background: var(--acento); border-color: var(--acento); color: #fff; }
+
+.tabla-envoltura { overflow-x: auto; background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radio); box-shadow: var(--sombra); }
+
+table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+th, td { padding: .6rem .8rem; text-align: left; border-bottom: 1px solid var(--linea); vertical-align: top; }
+th { font-size: .78rem; text-transform: uppercase; letter-spacing: .05em; color: var(--suave); }
+tr:last-child td { border-bottom: 0; }
+td.num { font-weight: 700; font-size: 1.05rem; }
+.estado--entregado { color: var(--ok); font-weight: 600; }
+.estado--custodia { color: var(--suave); }
+
+/* ── Tickets ─────────────────────────────────────────────────── */
+
+.vista-previa__nota { color: var(--suave); font-size: .9rem; }
+.lamina--muestra { background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radio); padding: 1rem; box-shadow: var(--sombra); }
+
+.ticket {
+  display: flex;
+  border: 1px dashed #9a948a;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.ticket__mitad {
+  flex: 1;
+  display: flex;
+  gap: .6rem;
+  align-items: center;
+  padding: .5rem .6rem;
+  min-width: 0;
+}
+
+.ticket__mitad + .ticket__mitad { border-left: 1px dashed #9a948a; }
+.ticket__qr { flex: 0 0 4.2rem; }
+.ticket__qr svg { display: block; width: 100%; height: auto; }
+.ticket__texto { min-width: 0; }
+.ticket__evento { font-size: .58rem; text-transform: uppercase; letter-spacing: .07em; color: #6b6a66; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ticket__numero { font-size: 1.7rem; font-weight: 700; line-height: 1; }
+.ticket__rol { font-size: .58rem; color: #6b6a66; }
+
+.ticket--solo { max-width: 26rem; margin: 0 auto 1.2rem; }
+.ticket--solo .ticket__qr { flex-basis: 5rem; }
+.ticket--solo .ticket__numero { font-size: 2.4rem; }
+
+.hoja { font-size: 0; line-height: 0; }
+.hoja > .ticket { display: inline-flex; width: 50%; vertical-align: top; }
+
+.comprobante { text-align: center; }
+.comprobante__hecho { margin: 0 0 1rem; color: var(--ok); font-weight: 700; font-size: 1.1rem; }
+.comprobante__botones { display: flex; flex-wrap: wrap; gap: .6rem; justify-content: center; }
+
+/* ── Impresión ───────────────────────────────────────────────── */
+
+#lamina { display: none; }
+
+@media print {
+  @page { margin: 10mm; }
+
+  body { padding: 0; background: #fff; }
+  .cabecera, .pestanas, main, .alerta { display: none !important; }
+
+  #lamina { display: block; }
+  .hoja > .ticket { border-radius: 0; height: 30mm; }
+  .ticket { break-inside: avoid; }
+  .ticket--solo { max-width: none; }
+
+  /* Un QR de 22 mm deja cada módulo en unos 0,75 mm. Por debajo de medio
+     milímetro las cámaras de los teléfonos empiezan a fallar, así que
+     conviene no achicarlo más aunque quepan más tickets por hoja. */
+  .ticket__qr { flex: 0 0 22mm; }
+  .ticket--solo .ticket__qr { flex-basis: 30mm; }
+}
