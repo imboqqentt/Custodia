@@ -13,7 +13,16 @@ quedan guardados dentro del navegador del equipo que atiende.
 1. **Antes del evento**, en la pestaña *Tickets*, imprime los tickets numerados.
    Cada uno sale en dos mitades con el mismo número y el mismo QR: una se pega o
    se amarra al equipaje, la otra se la lleva la persona. Córtalos por la línea
-   del medio. Entran 16 por hoja tamaño carta.
+   del medio. Puedes elegir el tamaño de hoja según la que tengas a mano:
+
+   | Hoja | Medidas | Tickets por página |
+   |---|---|---|
+   | Carta | 21,6 × 27,9 cm | 16 |
+   | Oficio | 21,6 × 35,6 cm | 22 |
+   | A4 | 21 × 29,7 cm | 18 |
+
+   Para dejarlos en PDF en vez de imprimirlos, en el cuadro de impresión elige
+   *Guardar como PDF*: la hoja ya viene con el tamaño que elegiste.
 2. **Al recibir**, en la pestaña *Recibir*: nombre, qué es, una foto si alcanzas,
    y en qué zona y posición queda. Se guarda con el número del ticket.
 3. **Al entregar**, en la pestaña *Entregar*: escanea el QR o escribe el número.
@@ -22,6 +31,36 @@ quedan guardados dentro del navegador del equipo que atiende.
 
 Si alguien perdió el ticket, en el mismo campo se busca por nombre: escribe
 «maria» o «muñoz» y aparece. También funciona sin tildes.
+
+### Las fotos
+
+Hay dos botones: *Tomar una foto*, que abre la cámara del aparato, y *Subir un
+archivo*, para una imagen que ya está en el computador. El segundo es el que
+sirve cuando la foto la sacó otra persona con su teléfono y te la mandó por
+WhatsApp: la guardas en el computador y la subes.
+
+Y no tienes que hacerlo en el momento. En la pestaña *Listado*, cada fila tiene
+un botón *Agregar* o *Cambiar* en la columna Foto, así que una imagen que llega
+media hora después se pega igual a su número.
+
+## Qué muestra el QR al escanearlo
+
+El QR lleva un texto y nada más: `Ticket 07`. Eso es exactamente lo que verá
+cualquier lector de códigos del teléfono.
+
+Es importante entender por qué no puede mostrar más. Los tickets se imprimen
+**antes** del evento, cuando todavía no existe ningún registro: al momento de
+imprimirlo, ese papel no sabe de quién va a ser ni dónde va a quedar. Y los datos
+viven en el computador donde se registra, no en la nube, así que el teléfono que
+escanea tampoco tiene de dónde leerlos.
+
+O sea: el QR sirve para **leer el número sin equivocarse**, no para consultar la
+ficha. El nombre, la ubicación y la foto se ven en el computador, escribiendo ese
+número —o el nombre— en la pestaña *Entregar*.
+
+Con dos dígitos, la verdad es que escribir es igual de rápido que escanear. El
+QR está porque el ticket se ve más formal y porque evita confundir un 6 con un 8
+en una fotocopia mala.
 
 ## Cómo abrirla
 
@@ -39,6 +78,17 @@ archivo. **Para un evento de este tamaño, atiende desde un solo equipo.**
 
 Dentro del navegador del equipo que estés usando, en ese equipo. No viajan a
 ninguna parte: no hay servidor al cual mandarlos.
+
+**No se borran al cerrar el navegador.** Quedan escritos en el disco: puedes
+cerrar la pestaña, cerrar el navegador, apagar el computador, y al día siguiente
+abrir el mismo archivo y encontrar todo como estaba. Se pierden solamente si
+alguien limpia los datos de navegación, si se usa una ventana de incógnito, o si
+se abre en otro navegador o en otro computador.
+
+Para el segundo día, en *Ajustes* está el botón **Respaldar y vaciar la
+custodia**: descarga el respaldo del día anterior y deja la custodia en cero,
+conservando el nombre del evento, las zonas y las posiciones. Es la forma segura
+de empezar de nuevo, porque respalda antes de borrar.
 
 La aplicación intenta usar la base del navegador (IndexedDB), que tiene espacio
 de sobra. Si el navegador no la permite —a veces pasa al abrir el archivo
@@ -74,9 +124,9 @@ riesgo real de robo**. Varias decisiones vienen de ahí:
 - **Las fotos son opcionales pero valen la pena.** Resuelven más discusiones que
   cualquier descripción escrita.
 
-En *Ajustes* se cambia el nombre del evento, los nombres de las zonas —ponles los
-que de verdad usen: «Entrada», «Altar», «Cocina»— y cuántas posiciones tiene cada
-una.
+En *Ajustes* se cambia el nombre del evento —viene con «Confraternidad MINCAR»—,
+los nombres de las zonas —ponles los que de verdad usen: «Entrada», «Altar»,
+«Cocina»— y cuántas posiciones tiene cada una.
 
 ## El día del evento
 
@@ -86,6 +136,7 @@ una.
   el peor escenario.
 - Abre la aplicación una vez y déjala abierta. No hace falta internet.
 - Descarga un respaldo cuando lleves la mitad y otro al final.
+- Si son dos días, al terminar el primero usa *Respaldar y vaciar la custodia*.
 - Al terminar, en *Listado* puedes bajar la planilla en formato de Excel.
 
 ## Escanear el QR

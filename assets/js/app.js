@@ -5,7 +5,7 @@
   'use strict';
 
   const AJUSTES_INICIALES = {
-    evento: 'Custodia de equipaje',
+    evento: 'Confraternidad MINCAR',
     zonas: ['A', 'B', 'C'],
     posiciones: 20,
   };
@@ -193,9 +193,14 @@
 
   /* ══════════════════════════ Tickets ══════════════════════════ */
 
+  // Lo que lleva el QR. Va con la palabra «Ticket» adelante para que, si alguien
+  // lo escanea con cualquier lector del teléfono, en pantalla aparezca algo que
+  // se entiende solo y no un número suelto sin contexto.
+  const contenidoQR = (numero) => `Ticket ${codigo(numero)}`;
+
   function ticketHTML(numero, extra = '') {
     const cod = codigo(numero);
-    const qr = QR.svg(cod);
+    const qr = QR.svg(contenidoQR(numero));
     const evento = escapar(estado.ajustes.evento);
     const mitad = (rol) => `
       <div class="ticket__mitad">
@@ -502,10 +507,11 @@
     if (!escaner.corriendo) return;
     try {
       const marcas = await escaner.detector.detect($('#e-video'));
-      const texto = marcas.length ? String(marcas[0].rawValue).trim() : '';
-      if (/^\d+$/.test(texto)) {
+      const texto = marcas.length ? String(marcas[0].rawValue) : '';
+      const numero = (texto.match(/\d+/) || [])[0];
+      if (numero) {
         cerrarCamara();
-        $('#e-busca').value = texto;
+        $('#e-busca').value = numero;
         buscarEntrega();
         return;
       }
@@ -543,7 +549,7 @@
     $('#l-tabla').innerHTML = `
       <table>
         <thead><tr>
-          <th>Ticket</th><th>Nombre</th><th>Equipaje</th><th>Lugar</th><th>Entró</th><th>Estado</th>
+          <th>Ticket</th><th>Nombre</th><th>Equipaje</th><th>Lugar</th><th>Entró</th><th>Estado</th><th>Foto</th>
         </tr></thead>
         <tbody>${filas
           .map(
@@ -558,10 +564,44 @@
             <td class="${r.entrega ? 'estado--entregado' : 'estado--custodia'}">${
               r.entrega ? 'Entregado ' + hora(r.entrega) : 'En custodia'
             }</td>
+            <td>${
+              r.foto
+                ? `<img class="miniatura" src="${r.foto}" alt="Equipaje del ticket ${codigo(r.numero)}">`
+                : ''
+            }<button type="button" class="boton boton--texto" data-foto="${r.numero}">${
+              r.foto ? 'Cambiar' : 'Agregar'
+            }</button></td>
           </tr>`
           )
           .join('')}</tbody>
       </table>`;
+  }
+
+  // La foto puede llegar mucho después del registro: alguien la sacó con su
+  // teléfono y la mandó por WhatsApp. Por eso se puede pegar a un ticket que ya
+  // existe, sin tener que rehacerlo.
+  let fotoPara = null;
+
+  async function guardarFotoDe(numero, archivo) {
+    const registro = buscarRegistro(numero);
+    if (!registro) return;
+    const antes = registro.foto;
+    try {
+      registro.foto = await comprimirFoto(archivo);
+    } catch (error) {
+      return avisar(error.message, false);
+    }
+    estado.cambios++;
+    try {
+      await guardar();
+    } catch (_) {
+      registro.foto = antes;
+      estado.cambios--;
+      return;
+    }
+    pintarListado();
+    actualizarResumen();
+    avisar(`Foto guardada en el ticket ${codigo(numero)}.`);
   }
 
   function exportarCSV() {
@@ -581,6 +621,50 @@
 
   /* ══════════════════════════ Lámina de tickets ══════════════════════════ */
 
+  // Alto útil = alto de la hoja menos los dos márgenes de 10 mm. Cada ticket
+  // mide 30 mm y van de a dos por fila; lo que no alcanza pasa a la hoja
+  // siguiente, porque ningún ticket se parte por la mitad.
+  const HOJAS = {
+    carta: { css: 'letter', nombre: 'carta', alto: 279.4 },
+    oficio: { css: 'legal', nombre: 'oficio', alto: 355.6 },
+    a4: { css: 'A4', nombre: 'A4', alto: 297 },
+  };
+
+  const MARGEN = 10;
+  const ALTO_TICKET = 30;
+
+  const porHoja = (hoja) => Math.floor((hoja.alto - MARGEN * 2) / ALTO_TICKET) * 2;
+
+  function hojaElegida() {
+    return HOJAS[$('#t-hoja').value] || HOJAS.carta;
+  }
+
+  // El tamaño se aplica con una regla @page, así el navegador ya llega con la
+  // hoja correcta puesta en el cuadro de impresión.
+  function aplicarTamanoHoja() {
+    const hoja = hojaElegida();
+    let estilo = document.getElementById('tamano-hoja');
+    if (!estilo) {
+      estilo = document.createElement('style');
+      estilo.id = 'tamano-hoja';
+      document.head.appendChild(estilo);
+    }
+    estilo.textContent = `@page { size: ${hoja.css}; margin: ${MARGEN}mm; }`;
+    contarHojas();
+  }
+
+  function contarHojas() {
+    const hoja = hojaElegida();
+    const cuantos = porHoja(hoja);
+    const desde = Math.max(1, Number($('#t-desde').value) || 1);
+    const hasta = Math.min(999, Number($('#t-hasta').value) || desde);
+    const total = Math.max(0, hasta - desde + 1);
+    const paginas = Math.ceil(total / cuantos);
+    $('#t-cuenta').textContent =
+      `En hoja ${hoja.nombre} entran ${cuantos} tickets por página` +
+      (total ? `: ${total} tickets ocupan ${paginas} hoja${paginas === 1 ? '' : 's'}.` : '.');
+  }
+
   let lamina = '';
 
   function laminaHTML(desde, hasta) {
@@ -595,10 +679,15 @@
     if (hasta < desde) return avisar('El «hasta» tiene que ser mayor que el «desde».', false);
     if (hasta - desde > 300) return avisar('Son demasiados tickets de una vez. Hazlo por tandas de 300.', false);
 
+    aplicarTamanoHoja();
     lamina = laminaHTML(desde, hasta);
     $('#t-muestra').innerHTML = lamina;
     $('#t-vista').hidden = false;
     $('#t-imprimir').hidden = false;
+    const hoja = hojaElegida();
+    $('#t-nota').textContent =
+      `Así se van a ver: ${porHoja(hoja)} por hoja ${hoja.nombre}. ` +
+      'Para dejarlos en PDF, en el cuadro de impresión elige «Guardar como PDF».';
     avisar(`${hasta - desde + 1} tickets listos, del ${codigo(desde)} al ${codigo(hasta)}.`);
   }
 
@@ -704,6 +793,31 @@
     avisar(`Respaldo cargado: ${datos.registros.length} registro(s).`);
   }
 
+  async function nuevaJornada() {
+    const cuantos = estado.registros.length;
+    if (!cuantos) return avisar('La custodia ya está vacía: puedes empezar sin más.', false);
+    if (
+      !confirm(
+        `Se va a descargar un respaldo con los ${cuantos} registro(s) y después se van a ` +
+          'borrar de la aplicación. El nombre del evento, las zonas y las posiciones se ' +
+          'conservan. ¿Seguir?'
+      )
+    ) return;
+
+    exportarRespaldo();
+    estado.registros = [];
+    estado.cambios++;
+    await guardar();
+    estado.respaldadoEn = estado.cambios;
+    await guardar();
+
+    prepararRecibir();
+    pintarListado();
+    pintarAjustes();
+    actualizarResumen();
+    avisar(`Jornada cerrada: se respaldaron ${cuantos} registro(s) y la custodia quedó vacía.`);
+  }
+
   async function borrarTodo() {
     if ($('#a-confirmar').value.trim().toUpperCase() !== 'BORRAR') {
       return avisar('Para borrar todo, escribe BORRAR en el recuadro.', false);
@@ -758,8 +872,12 @@
       pintarPosiciones();
     });
 
-    $('#r-foto-boton').addEventListener('click', () => $('#r-foto').click());
-    $('#r-foto').addEventListener('change', async (e) => {
+    // Dos caminos para la misma foto: la cámara del aparato, o un archivo que ya
+    // está en el computador —por ejemplo el que llegó por WhatsApp—.
+    $('#r-foto-camara-boton').addEventListener('click', () => $('#r-foto-camara').click());
+    $('#r-foto-archivo-boton').addEventListener('click', () => $('#r-foto-archivo').click());
+
+    const tomarFoto = async (e) => {
       const archivo = e.target.files && e.target.files[0];
       if (!archivo) return;
       try {
@@ -770,10 +888,14 @@
       } catch (error) {
         avisar(error.message, false);
       }
-    });
+    };
+    $('#r-foto-camara').addEventListener('change', tomarFoto);
+    $('#r-foto-archivo').addEventListener('change', tomarFoto);
+
     $('#r-foto-quitar').addEventListener('click', () => {
       recibir.foto = null;
-      $('#r-foto').value = '';
+      $('#r-foto-camara').value = '';
+      $('#r-foto-archivo').value = '';
       $('#r-foto-vista').hidden = true;
       $('#r-foto-quitar').hidden = true;
     });
@@ -805,10 +927,24 @@
     });
     $('#l-busca').addEventListener('input', pintarListado);
     $('#l-csv').addEventListener('click', exportarCSV);
+    $('#l-tabla').addEventListener('click', (e) => {
+      const boton = e.target.closest('[data-foto]');
+      if (!boton) return;
+      fotoPara = Number(boton.dataset.foto);
+      $('#l-foto').click();
+    });
+    $('#l-foto').addEventListener('change', (e) => {
+      const archivo = e.target.files && e.target.files[0];
+      if (archivo && fotoPara != null) guardarFotoDe(fotoPara, archivo);
+      e.target.value = '';
+    });
 
     // Tickets
     $('#t-generar').addEventListener('click', prepararLamina);
     $('#t-imprimir').addEventListener('click', () => imprimir(lamina));
+    $('#t-hoja').addEventListener('change', aplicarTamanoHoja);
+    $('#t-desde').addEventListener('input', contarHojas);
+    $('#t-hasta').addEventListener('input', contarHojas);
 
     // Ajustes
     $('#forma-ajustes').addEventListener('submit', guardarAjustes);
@@ -820,6 +956,7 @@
       if (archivo) importarRespaldo(archivo);
       e.target.value = '';
     });
+    $('#a-jornada').addEventListener('click', nuevaJornada);
     $('#a-borrar').addEventListener('click', borrarTodo);
   }
 
@@ -843,6 +980,7 @@
     }
 
     conectar();
+    aplicarTamanoHoja();
     aplicarAjustes();
     prepararRecibir();
     mostrarPanel('recibir');

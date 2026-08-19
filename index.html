@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Custodia de equipaje</title>
+<title>Confraternidad MINCAR</title>
 <meta name="description" content="Registro de equipaje para un evento: tickets con QR, foto del bulto y ubicación en el salón. Funciona sin internet.">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='88'>🧳</text></svg>">
 <link rel="stylesheet" href="assets/css/estilos.css">
@@ -14,7 +14,7 @@
 
 <header class="cabecera">
   <div>
-    <h1 id="titulo-evento">Custodia de equipaje</h1>
+    <h1 id="titulo-evento">Confraternidad MINCAR</h1>
     <p id="resumen" class="cabecera__resumen">Cargando…</p>
   </div>
   <button type="button" id="respaldar" class="boton boton--suave">
@@ -69,11 +69,17 @@
     <div class="campo">
       <span class="campo__nombre">Foto <span class="campo__opcional">(opcional, pero ayuda mucho)</span></span>
       <div class="foto">
-        <input type="file" id="r-foto" accept="image/*" capture="environment" hidden>
-        <button type="button" class="boton boton--suave" id="r-foto-boton">Tomar o elegir foto</button>
+        <input type="file" id="r-foto-camara" accept="image/*" capture="environment" hidden>
+        <input type="file" id="r-foto-archivo" accept="image/*" hidden>
+        <button type="button" class="boton boton--suave" id="r-foto-camara-boton">Tomar una foto</button>
+        <button type="button" class="boton boton--suave" id="r-foto-archivo-boton">Subir un archivo</button>
         <button type="button" class="boton boton--texto" id="r-foto-quitar" hidden>Quitar</button>
         <img id="r-foto-vista" class="foto__vista" alt="" hidden>
       </div>
+      <p class="campo__pista">
+        Si la foto la sacó otra persona y te llegó por WhatsApp, guárdala en el computador
+        y súbela con «Subir un archivo». También puedes agregarla después, desde el listado.
+      </p>
     </div>
 
     <fieldset class="campo">
@@ -130,6 +136,7 @@
     <button type="button" class="boton boton--suave" id="l-csv">Descargar planilla</button>
   </div>
 
+  <input type="file" id="l-foto" accept="image/*" hidden>
   <div id="l-tabla" class="tabla-envoltura"></div>
 
 </section>
@@ -153,7 +160,16 @@
         <span class="campo__nombre">Hasta</span>
         <input type="number" id="t-hasta" min="1" max="999" value="60">
       </label>
+      <label class="campo campo--medio">
+        <span class="campo__nombre">Tamaño de la hoja</span>
+        <select id="t-hoja">
+          <option value="carta">Carta · 21,6 × 27,9 cm</option>
+          <option value="oficio">Oficio · 21,6 × 35,6 cm</option>
+          <option value="a4">A4 · 21 × 29,7 cm</option>
+        </select>
+      </label>
     </div>
+    <p class="campo__pista" id="t-cuenta"></p>
     <div class="botonera">
       <button type="button" class="boton boton--principal" id="t-generar">Preparar la lámina</button>
       <button type="button" class="boton boton--suave" id="t-imprimir" hidden>Imprimir</button>
@@ -161,7 +177,7 @@
   </div>
 
   <div id="t-vista" class="vista-previa" hidden>
-    <p class="vista-previa__nota">Así se van a ver. Entran 16 por hoja tamaño carta.</p>
+    <p class="vista-previa__nota" id="t-nota">Así se van a ver.</p>
     <div id="t-muestra" class="lamina lamina--muestra"></div>
   </div>
 
@@ -174,7 +190,7 @@
     <h2>El evento</h2>
     <label class="campo">
       <span class="campo__nombre">Nombre</span>
-      <input type="text" id="a-evento" placeholder="Custodia de equipaje">
+      <input type="text" id="a-evento" placeholder="Confraternidad MINCAR">
     </label>
     <label class="campo">
       <span class="campo__nombre">Zonas del salón</span>
@@ -200,6 +216,19 @@
       <button type="button" class="boton boton--principal" id="a-exportar">Descargar respaldo</button>
       <input type="file" id="a-importar" accept="application/json,.json" hidden>
       <button type="button" class="boton boton--suave" id="a-importar-boton">Cargar un respaldo</button>
+    </div>
+  </div>
+
+  <div class="tarjeta">
+    <h2>Empezar una jornada nueva</h2>
+    <p class="parrafo">
+      Para el segundo día: descarga un respaldo con todo lo del día anterior y deja la
+      custodia vacía, conservando el nombre del evento, las zonas y las posiciones.
+    </p>
+    <div class="botonera">
+      <button type="button" class="boton boton--principal" id="a-jornada">
+        Respaldar y vaciar la custodia
+      </button>
     </div>
   </div>
 

@@ -41,9 +41,9 @@ RAIZ = pathlib.Path(__file__).resolve().parent.parent
 QR_JS = RAIZ / 'assets' / 'js' / 'qr.js'
 
 CASOS = [
+    # Lo que de verdad llevan los tickets de la aplicación.
+    'Ticket 01', 'Ticket 07', 'Ticket 50', 'Ticket 99', 'Ticket 100',
     '1', '7', '07', '42', '50',
-    'CUSTODIA 07',
-    'CUSTODIA 50',
     'Bolso 03 / Zona A',
     '0123456789ABCD',                                # 14 bytes: versión 1 al límite
     '0123456789ABCDE',                               # 15 bytes: obliga a versión 2
