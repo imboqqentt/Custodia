@@ -176,8 +176,31 @@
     setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
   }
 
-  const enCustodia = () => estado.registros.filter((r) => !r.entrega);
+  /* Un ticket pasa por tres estados:
+
+       custodia  — el bulto está en su lugar del salón.
+       tomado    — su dueño lo tiene ahora, pero lo va a devolver. El lugar
+                   queda reservado, no se le da a nadie más.
+       entregado — se lo llevó y el ticket se cierra.
+
+     Los dos primeros siguen siendo responsabilidad de la custodia; por eso
+     «a cargo» los cuenta a los dos. */
+  const ESTADOS = ['custodia', 'tomado', 'entregado'];
+
+  const aCargo = () => estado.registros.filter((r) => r.estado !== 'entregado');
+  const cuantos = (cual) => estado.registros.filter((r) => r.estado === cual).length;
   const buscarRegistro = (numero) => estado.registros.find((r) => r.numero === numero);
+
+  // Los respaldos viejos y los registros de antes de que existiera «tomado»
+  // solo tienen la fecha de entrega: de ahí se deduce en qué estado quedaron.
+  function completar(registro) {
+    if (!ESTADOS.includes(registro.estado)) {
+      registro.estado = registro.entrega ? 'entregado' : 'custodia';
+    }
+    if (registro.tomado === undefined) registro.tomado = null;
+    if (typeof registro.salidas !== 'number') registro.salidas = 0;
+    return registro;
+  }
 
   function siguienteNumero() {
     let n = 1;
@@ -186,7 +209,7 @@
   }
 
   function ocupadas(zona) {
-    return new Set(enCustodia().filter((r) => r.zona === zona).map((r) => r.posicion));
+    return new Set(aCargo().filter((r) => r.zona === zona).map((r) => r.posicion));
   }
 
   function primeraLibre(zona) {
@@ -348,7 +371,10 @@
       zona: recibir.zona,
       posicion: recibir.posicion,
       ingreso: new Date().toISOString(),
+      estado: 'custodia',
+      tomado: null,
       entrega: null,
+      salidas: 0,
     });
     estado.cambios++;
 
@@ -399,9 +425,13 @@
       return;
     }
 
+    // Los cerrados al final: casi siempre se busca algo que todavía está.
     const hallados = estado.registros
       .filter((r) => coincide(r, consulta))
-      .sort((a, b) => Number(Boolean(a.entrega)) - Number(Boolean(b.entrega)) || a.numero - b.numero);
+      .sort(
+        (a, b) =>
+          Number(a.estado === 'entregado') - Number(b.estado === 'entregado') || a.numero - b.numero
+      );
 
     if (!hallados.length) {
       caja.innerHTML = '<p class="vacio">Nada con eso. Prueba con el nombre, o revisa el listado.</p>';
@@ -417,12 +447,12 @@
     caja.innerHTML = hallados
       .map(
         (r) => `
-      <button type="button" class="resultado${r.entrega ? ' resultado--entregado' : ''}" data-numero="${r.numero}">
+      <button type="button" class="resultado resultado--${r.estado}" data-numero="${r.numero}">
         <span class="resultado__numero">${codigo(r.numero)}</span>
         <span>
           <span class="resultado__nombre">${escapar(r.nombre)}</span>
           <span class="resultado__detalle">${escapar(ubicacionDe(r))} · ${escapar(r.descripcion || (r.bultos + ' bulto(s)'))}${
-            r.entrega ? ' · ya entregado' : ''
+            { tomado: ' · lo tiene su dueño', entregado: ' · ya entregado', custodia: '' }[r.estado]
           }</span>
         </span>
       </button>`
@@ -436,53 +466,110 @@
       ? `<img class="ficha__foto" src="${registro.foto}" alt="Foto del equipaje del ticket ${codigo(registro.numero)}">`
       : '';
 
+    // Cuando el bulto está tomado, lo grande no puede ser la ubicación: el
+    // bulto no está ahí y alguien lo iría a buscar en vano.
+    const titular =
+      registro.estado === 'tomado'
+        ? `<p class="ficha__ubicacion ficha__ubicacion--fuera">Lo tiene su dueño</p>
+           <p class="ficha__dato">Su lugar reservado es <b>${escapar(ubicacionDe(registro))}</b>.</p>`
+        : `<p class="ficha__ubicacion">${escapar(ubicacionDe(registro))}</p>`;
+
+    const situacion = {
+      tomado: `<p class="ficha__fuera">Lo tiene desde las ${hora(registro.tomado)}. El lugar quedó reservado.</p>`,
+      entregado: `<p class="ficha__entregado">Se lo llevó a las ${hora(registro.entrega)}.</p>`,
+      custodia: '',
+    }[registro.estado];
+
+    const acciones = {
+      custodia: `
+        <button type="button" class="boton boton--principal boton--ancho" id="e-entregar">Se lo lleva: entregar y cerrar</button>
+        <button type="button" class="boton boton--suave boton--ancho" id="e-tomar">Lo toma un rato y lo devuelve</button>`,
+      tomado: `
+        <button type="button" class="boton boton--principal boton--ancho" id="e-devolver">Lo devolvió: vuelve a ${escapar(ubicacionDe(registro))}</button>
+        <button type="button" class="boton boton--suave boton--ancho" id="e-entregar">Ya no vuelve: entregar y cerrar</button>`,
+      entregado: `
+        <button type="button" class="boton boton--suave boton--ancho" id="e-deshacer">Deshacer: dejarlo otra vez en custodia</button>`,
+    }[registro.estado];
+
+    const salidas =
+      registro.salidas > 0
+        ? `<p class="ficha__dato"><span class="ficha__etiqueta">Lo ha sacado ${registro.salidas} ${
+            registro.salidas === 1 ? 'vez' : 'veces'
+          }</span></p>`
+        : '';
+
     $('#e-ficha').innerHTML = `
       <div class="tarjeta">
         <div class="ficha">
           <div>
             <p class="ficha__etiqueta">Ticket ${codigo(registro.numero)} · ${escapar(registro.nombre)}</p>
-            <p class="ficha__ubicacion">${escapar(ubicacionDe(registro))}</p>
+            ${titular}
             <p class="ficha__dato">${registro.bultos} bulto(s)${
               registro.descripcion ? ' · ' + escapar(registro.descripcion) : ''
             }</p>
             <p class="ficha__dato"><span class="ficha__etiqueta">Recibido a las ${hora(registro.ingreso)}</span></p>
-            ${
-              registro.entrega
-                ? `<p class="ficha__entregado">Ya fue entregado a las ${hora(registro.entrega)}.
-                     <button type="button" class="boton boton--texto" id="e-deshacer">Deshacer</button></p>`
-                : '<button type="button" class="boton boton--principal boton--ancho" id="e-entregar">Marcar como entregado</button>'
-            }
+            ${salidas}
+            ${situacion}
+            <div class="acciones">${acciones}</div>
           </div>
           ${foto}
         </div>
       </div>`;
 
-    const botonEntregar = $('#e-entregar');
-    if (botonEntregar) botonEntregar.focus();
+    const primero = $('.acciones .boton');
+    if (primero) primero.focus();
   }
 
-  async function marcarEntrega(numero, entregado) {
+  async function cambiarEstado(numero, nuevo) {
     const registro = buscarRegistro(numero);
     if (!registro) return;
-    const antes = registro.entrega;
-    registro.entrega = entregado ? new Date().toISOString() : null;
+
+    const antes = {
+      estado: registro.estado,
+      tomado: registro.tomado,
+      entrega: registro.entrega,
+      salidas: registro.salidas,
+    };
+    const ahora = new Date().toISOString();
+
+    if (nuevo === 'tomado') {
+      Object.assign(registro, { estado: 'tomado', tomado: ahora, entrega: null, salidas: registro.salidas + 1 });
+    } else if (nuevo === 'custodia') {
+      Object.assign(registro, { estado: 'custodia', tomado: null, entrega: null });
+    } else {
+      Object.assign(registro, { estado: 'entregado', tomado: null, entrega: ahora });
+    }
+
     estado.cambios++;
     try {
       await guardar();
     } catch (_) {
-      registro.entrega = antes;
+      Object.assign(registro, antes);
       estado.cambios--;
       return;
     }
+
     actualizarResumen();
     mostrarFicha(registro);
-    if (entregado) {
-      avisar(`Ticket ${codigo(numero)} entregado.`);
+
+    const lugar = ubicacionDe(registro);
+    avisar(
+      {
+        tomado: `Ticket ${codigo(numero)} tomado. Su lugar en ${lugar} queda reservado.`,
+        custodia: `Ticket ${codigo(numero)} de vuelta en ${lugar}.`,
+        entregado: `Ticket ${codigo(numero)} entregado.`,
+      }[nuevo]
+    );
+
+    // Después de atender a alguien se limpia la búsqueda para el siguiente.
+    // Deshacer una entrega es una corrección, no un turno: ahí conviene que la
+    // ficha se quede en pantalla.
+    if (nuevo !== 'custodia' || antes.estado === 'tomado') {
       setTimeout(() => {
         $('#e-busca').value = '';
         $('#e-busca').focus();
         buscarEntrega();
-      }, 1200);
+      }, 1400);
     }
   }
 
@@ -539,7 +626,7 @@
   function registrosFiltrados() {
     const consulta = normalizar($('#l-busca').value);
     return estado.registros
-      .filter((r) => (filtro === 'todos' ? true : filtro === 'custodia' ? !r.entrega : Boolean(r.entrega)))
+      .filter((r) => filtro === 'todos' || r.estado === filtro)
       .filter((r) => !consulta || coincide(r, consulta))
       .sort((a, b) => a.numero - b.numero);
   }
@@ -565,8 +652,16 @@
             <td>${r.bultos} bulto(s)${r.descripcion ? '<br>' + escapar(r.descripcion) : ''}</td>
             <td>${escapar(ubicacionDe(r))}</td>
             <td>${hora(r.ingreso)}</td>
-            <td class="${r.entrega ? 'estado--entregado' : 'estado--custodia'}">${
-              r.entrega ? 'Entregado ' + hora(r.entrega) : 'En custodia'
+            <td class="estado--${r.estado}">${
+              {
+                custodia: 'En custodia',
+                tomado: 'Tomado ' + hora(r.tomado),
+                entregado: 'Entregado ' + hora(r.entrega),
+              }[r.estado]
+            }${
+              r.salidas > 0
+                ? `<br><span class="resultado__detalle">${r.salidas} salida${r.salidas === 1 ? '' : 's'}</span>`
+                : ''
             }</td>
             <td>${
               r.foto
@@ -609,13 +704,20 @@
   }
 
   function exportarCSV() {
-    const cabecera = ['Ticket', 'Nombre', 'Telefono', 'Bultos', 'Descripcion', 'Zona', 'Posicion', 'Ingreso', 'Entrega'];
+    const cabecera = [
+      'Ticket', 'Nombre', 'Telefono', 'Bultos', 'Descripcion', 'Zona', 'Posicion',
+      'Ingreso', 'Estado', 'Salidas', 'Tomado desde', 'Entrega',
+    ];
+    const NOMBRE_ESTADO = { custodia: 'En custodia', tomado: 'Tomado', entregado: 'Entregado' };
     const celda = (v) => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
     const filas = estado.registros
       .slice()
       .sort((a, b) => a.numero - b.numero)
       .map((r) =>
-        [codigo(r.numero), r.nombre, r.telefono, r.bultos, r.descripcion, r.zona, r.posicion, fechaHora(r.ingreso), fechaHora(r.entrega)]
+        [
+          codigo(r.numero), r.nombre, r.telefono, r.bultos, r.descripcion, r.zona, r.posicion,
+          fechaHora(r.ingreso), NOMBRE_ESTADO[r.estado], r.salidas, fechaHora(r.tomado), fechaHora(r.entrega),
+        ]
           .map(celda)
           .join(';')
       );
@@ -749,10 +851,12 @@
 
   function actualizarResumen() {
     const total = estado.registros.length;
-    const dentro = enCustodia().length;
-    $('#resumen').textContent = total
-      ? `${dentro} en custodia · ${total - dentro} entregados · ${total} en total`
-      : 'Todavía no hay equipaje registrado.';
+    const tomados = cuantos('tomado');
+    const partes = [`${cuantos('custodia')} en custodia`];
+    if (tomados) partes.push(`${tomados} tomado${tomados === 1 ? '' : 's'}`);
+    partes.push(`${cuantos('entregado')} entregados`, `${total} en total`);
+
+    $('#resumen').textContent = total ? partes.join(' · ') : 'Todavía no hay equipaje registrado.';
 
     const pendientes = Math.max(0, estado.cambios - estado.respaldadoEn);
     const insignia = $('#pendientes');
@@ -787,7 +891,7 @@
     )) return;
 
     estado.ajustes = { ...AJUSTES_INICIALES, ...(datos.ajustes || {}) };
-    estado.registros = datos.registros;
+    estado.registros = datos.registros.map(completar);
     estado.cambios++;
     await guardar();
     aplicarAjustes();
@@ -911,8 +1015,8 @@
       if (boton) mostrarFicha(buscarRegistro(Number(boton.dataset.numero)));
     });
     $('#e-ficha').addEventListener('click', (e) => {
-      if (e.target.id === 'e-entregar') marcarEntrega(elegido, true);
-      if (e.target.id === 'e-deshacer') marcarEntrega(elegido, false);
+      const paso = { 'e-entregar': 'entregado', 'e-tomar': 'tomado', 'e-devolver': 'custodia', 'e-deshacer': 'custodia' }[e.target.id];
+      if (paso) cambiarEstado(elegido, paso);
     });
 
     if ('BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -978,7 +1082,7 @@
 
     if (guardado) {
       estado.ajustes = { ...AJUSTES_INICIALES, ...(guardado.ajustes || {}) };
-      estado.registros = Array.isArray(guardado.registros) ? guardado.registros : [];
+      estado.registros = (Array.isArray(guardado.registros) ? guardado.registros : []).map(completar);
       estado.cambios = guardado.cambios || 0;
       estado.respaldadoEn = guardado.respaldadoEn || 0;
     }

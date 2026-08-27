@@ -26,11 +26,36 @@ quedan guardados dentro del navegador del equipo que atiende.
 2. **Al recibir**, en la pestaña *Recibir*: nombre, qué es, una foto si alcanzas,
    y en qué zona y posición queda. Se guarda con el número del ticket.
 3. **Al entregar**, en la pestaña *Entregar*: escanea el QR o escribe el número.
-   Aparece en grande dónde está el equipaje, con la foto. Se marca como
-   entregado y listo.
+   Aparece en grande dónde está el equipaje, con la foto. Después hay dos
+   caminos, según si se lo lleva o solo lo saca un rato.
 
 Si alguien perdió el ticket, en el mismo campo se busca por nombre: escribe
 «maria» o «muñoz» y aparece. También funciona sin tildes.
+
+## Los tres estados de un ticket
+
+No es lo mismo que alguien se vaya con su bolso que lo saque un rato para
+buscar algo y lo devuelva. Cada ticket puede estar en uno de tres estados:
+
+| Estado | Qué significa | Su lugar en el salón |
+|---|---|---|
+| **En custodia** | El bulto está en su posición | Ocupado |
+| **Tomado** | Lo tiene su dueño ahora, va a volver | **Reservado**, nadie más lo usa |
+| **Entregado** | Se lo llevó, el ticket se cerró | Libre |
+
+Al buscar un ticket que está en custodia salen dos botones: *Se lo lleva:
+entregar y cerrar* y *Lo toma un rato y lo devuelve*. Si está tomado, los
+botones cambian a *Lo devolvió: vuelve a Entrada-1* —con el lugar escrito, para
+no tener que acordarse— y *Ya no vuelve: entregar y cerrar*.
+
+Cuando un bulto está tomado, la ficha **deja de mostrar la ubicación en
+grande** y dice «Lo tiene su dueño». Es a propósito: si dijera «Entrada-1»,
+alguien iría a buscarlo ahí y no lo encontraría.
+
+El lugar queda reservado y no se le asigna a nadie más, así que al devolverlo
+vuelve al mismo sitio con un clic. Cada ticket guarda además cuántas veces se
+ha sacado, y el filtro *Tomados* del listado muestra de una lo que está afuera
+en este momento — útil al cierre, para ir a buscar lo que nadie devolvió.
 
 ### Las fotos
 
@@ -115,7 +140,9 @@ riesgo real de robo**. Varias decisiones vienen de ahí:
   vecino. Acá no hace falta.
 - **Un ticket por persona, no por bulto.** Si alguien deja tres bolsos, quedan
   los tres juntos en la misma posición bajo un solo número. Es más rápido y para
-  este tamaño no se presta a confusión.
+  este tamaño no se presta a confusión. Por lo mismo, «tomado» es todo o nada:
+  no se lleva un bolso de tres y deja los otros dos. Si eso hiciera falta,
+  conviene darle un ticket por bulto a esa persona.
 - **El QR lleva solo el número**, nada más. Un ticket que se cae al suelo no
   revela el nombre ni el teléfono de nadie.
 - **La ubicación se elige de una grilla**, no se escribe a mano. «Al lado de la
@@ -136,6 +163,7 @@ los nombres de las zonas —ponles los que de verdad usen: «Entrada», «Altar�
   el peor escenario.
 - Abre la aplicación una vez y déjala abierta. No hace falta internet.
 - Descarga un respaldo cuando lleves la mitad y otro al final.
+- Antes de cerrar, revisa el filtro *Tomados*: es lo que salió y no volvió.
 - Si son dos días, al terminar el primero usa *Respaldar y vaciar la custodia*.
 - Al terminar, en *Listado* puedes bajar la planilla en formato de Excel.
 
