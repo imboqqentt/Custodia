@@ -57,6 +57,19 @@ vuelve al mismo sitio con un clic. Cada ticket guarda además cuántas veces se
 ha sacado, y el filtro *Tomados* del listado muestra de una lo que está afuera
 en este momento — útil al cierre, para ir a buscar lo que nadie devolvió.
 
+## El hermano que hospeda
+
+Al recibir se puede anotar **quién hospeda a la visita**. No es un dato de
+adorno: si después ese hermano viene a buscar el equipaje para llevarlo a su
+auto, la ficha lo muestra destacado y aparece **un botón con su nombre**, así
+queda registrado que lo retiró él y no la visita.
+
+También se busca por su nombre. Escribiendo «juan soto» salen todas las visitas
+que él hospeda, que es justo lo que se necesita cuando llega a buscar el
+equipaje de tres familias de una vez.
+
+En la planilla de Excel quedan las columnas *Hospedador* y *Retirado por*.
+
 ### Las fotos
 
 Hay dos botones: *Tomar una foto*, que abre la cámara del aparato, y *Subir un
@@ -67,6 +80,30 @@ WhatsApp: la guardas en el computador y la subes.
 Y no tienes que hacerlo en el momento. En la pestaña *Listado*, cada fila tiene
 un botón *Agregar* o *Cambiar* en la columna Foto, así que una imagen que llega
 media hora después se pega igual a su número.
+
+**Cualquier foto se abre en grande con un clic**, tanto la de la ficha como la
+miniatura del listado. Se cierra con la tecla *Escape* o pinchando fuera. Ojo
+que las fotos se guardan achicadas —900 px de lado, o 560 si el navegador
+obliga a usar el almacenamiento simple—, así que «en grande» llega hasta ahí:
+alcanza para reconocer un bulto, que es para lo único que están.
+
+## La lista en papel
+
+En *Listado*, el botón **Imprimir la lista** saca en papel lo que estás viendo
+—respeta el filtro— con lo importante: número, nombre y teléfono, quién
+hospeda, bultos, descripción, lugar y estado.
+
+La última columna va **en blanco a propósito**: es para firmar o anotar a mano
+quién retiró. Así la hoja sirve de respaldo si el computador se apaga a mitad
+de jornada y hay que seguir atendiendo con papel y lápiz. En los tickets ya
+entregados, esa columna viene con el nombre de quien se lo llevó.
+
+Las fotos no se imprimen: gastarían media hoja cada una. La cabecera de la
+tabla se repite en cada página, y el tamaño de hoja es el mismo que se elige en
+la pestaña *Tickets*.
+
+Aparte está *Descargar en Excel*, que baja la misma información como planilla
+para abrirla en el computador.
 
 ## Qué muestra el QR al escanearlo
 

@@ -155,6 +155,9 @@
 
   const ubicacionDe = (r) => (r.zona ? `${r.zona}-${r.posicion}` : 'sin ubicación');
 
+  // Para los botones: «María González Rojas» cabe mal, «María González» sí.
+  const nombreCorto = (nombre) => String(nombre || '').trim().split(/\s+/).slice(0, 2).join(' ');
+
   function avisar(mensaje, bien = true) {
     const caja = $('#alerta');
     caja.textContent = mensaje;
@@ -199,6 +202,8 @@
     }
     if (registro.tomado === undefined) registro.tomado = null;
     if (typeof registro.salidas !== 'number') registro.salidas = 0;
+    if (typeof registro.hospedador !== 'string') registro.hospedador = '';
+    if (registro.retirado === undefined) registro.retirado = null;
     return registro;
   }
 
@@ -365,6 +370,7 @@
       numero,
       nombre,
       telefono: $('#r-telefono').value.trim(),
+      hospedador: $('#r-hospedador').value.trim(),
       bultos: Math.max(1, Number($('#r-bultos').value) || 1),
       descripcion: $('#r-descripcion').value.trim(),
       foto: recibir.foto,
@@ -375,6 +381,7 @@
       tomado: null,
       entrega: null,
       salidas: 0,
+      retirado: null,
     });
     estado.cambios++;
 
@@ -409,6 +416,7 @@
     }
     return (
       normalizar(registro.nombre).includes(consulta) ||
+      normalizar(registro.hospedador).includes(consulta) ||
       normalizar(registro.descripcion).includes(consulta) ||
       normalizar(ubicacionDe(registro)).includes(consulta)
     );
@@ -463,7 +471,15 @@
   function mostrarFicha(registro) {
     elegido = registro.numero;
     const foto = registro.foto
-      ? `<img class="ficha__foto" src="${registro.foto}" alt="Foto del equipaje del ticket ${codigo(registro.numero)}">`
+      ? `<img class="ficha__foto ampliable" src="${registro.foto}" alt="Foto del equipaje del ticket ${codigo(
+          registro.numero
+        )}" title="Ver la foto en grande">`
+      : '';
+
+    // Quién lo hospeda va destacado: es la única forma de saber, en el momento,
+    // si la persona que está pidiendo el bulto tiene por qué llevárselo.
+    const hospedaje = registro.hospedador
+      ? `<p class="ficha__hospeda">Lo hospeda <b>${escapar(registro.hospedador)}</b>, que también puede retirarlo.</p>`
       : '';
 
     // Cuando el bulto está tomado, lo grande no puede ser la ubicación: el
@@ -476,17 +492,32 @@
 
     const situacion = {
       tomado: `<p class="ficha__fuera">Lo tiene desde las ${hora(registro.tomado)}. El lugar quedó reservado.</p>`,
-      entregado: `<p class="ficha__entregado">Se lo llevó a las ${hora(registro.entrega)}.</p>`,
+      entregado: `<p class="ficha__entregado">Lo retiró ${
+        registro.retirado === 'hospedador'
+          ? escapar(registro.hospedador) + ', que lo hospeda,'
+          : escapar(nombreCorto(registro.nombre))
+      } a las ${hora(registro.entrega)}.</p>`,
       custodia: '',
     }[registro.estado];
 
+    // Con hospedador asignado, entregar deja de ser un solo botón: hay dos
+    // personas que pueden llevárselo y conviene que quede anotado cuál fue.
+    const entregar = registro.hospedador
+      ? `<button type="button" class="boton boton--principal boton--ancho" id="e-entregar">Lo retira ${escapar(
+          nombreCorto(registro.nombre)
+        )}</button>
+         <button type="button" class="boton boton--principal boton--ancho" id="e-entregar-hospedador">Lo retira ${escapar(
+           nombreCorto(registro.hospedador)
+         )}, que lo hospeda</button>`
+      : '<button type="button" class="boton boton--principal boton--ancho" id="e-entregar">Se lo lleva: entregar y cerrar</button>';
+
     const acciones = {
       custodia: `
-        <button type="button" class="boton boton--principal boton--ancho" id="e-entregar">Se lo lleva: entregar y cerrar</button>
+        ${entregar}
         <button type="button" class="boton boton--suave boton--ancho" id="e-tomar">Lo toma un rato y lo devuelve</button>`,
       tomado: `
         <button type="button" class="boton boton--principal boton--ancho" id="e-devolver">Lo devolvió: vuelve a ${escapar(ubicacionDe(registro))}</button>
-        <button type="button" class="boton boton--suave boton--ancho" id="e-entregar">Ya no vuelve: entregar y cerrar</button>`,
+        ${entregar}`,
       entregado: `
         <button type="button" class="boton boton--suave boton--ancho" id="e-deshacer">Deshacer: dejarlo otra vez en custodia</button>`,
     }[registro.estado];
@@ -509,6 +540,7 @@
             }</p>
             <p class="ficha__dato"><span class="ficha__etiqueta">Recibido a las ${hora(registro.ingreso)}</span></p>
             ${salidas}
+            ${hospedaje}
             ${situacion}
             <div class="acciones">${acciones}</div>
           </div>
@@ -520,7 +552,7 @@
     if (primero) primero.focus();
   }
 
-  async function cambiarEstado(numero, nuevo) {
+  async function cambiarEstado(numero, nuevo, quien = 'dueno') {
     const registro = buscarRegistro(numero);
     if (!registro) return;
 
@@ -529,15 +561,16 @@
       tomado: registro.tomado,
       entrega: registro.entrega,
       salidas: registro.salidas,
+      retirado: registro.retirado,
     };
     const ahora = new Date().toISOString();
 
     if (nuevo === 'tomado') {
-      Object.assign(registro, { estado: 'tomado', tomado: ahora, entrega: null, salidas: registro.salidas + 1 });
+      Object.assign(registro, { estado: 'tomado', tomado: ahora, entrega: null, retirado: null, salidas: registro.salidas + 1 });
     } else if (nuevo === 'custodia') {
-      Object.assign(registro, { estado: 'custodia', tomado: null, entrega: null });
+      Object.assign(registro, { estado: 'custodia', tomado: null, entrega: null, retirado: null });
     } else {
-      Object.assign(registro, { estado: 'entregado', tomado: null, entrega: ahora });
+      Object.assign(registro, { estado: 'entregado', tomado: null, entrega: ahora, retirado: quien });
     }
 
     estado.cambios++;
@@ -557,7 +590,9 @@
       {
         tomado: `Ticket ${codigo(numero)} tomado. Su lugar en ${lugar} queda reservado.`,
         custodia: `Ticket ${codigo(numero)} de vuelta en ${lugar}.`,
-        entregado: `Ticket ${codigo(numero)} entregado.`,
+        entregado: `Ticket ${codigo(numero)} entregado a ${
+          quien === 'hospedador' ? registro.hospedador : nombreCorto(registro.nombre)
+        }.`,
       }[nuevo]
     );
 
@@ -632,6 +667,7 @@
   }
 
   function pintarListado() {
+    notaLista();
     const filas = registrosFiltrados();
     if (!filas.length) {
       $('#l-tabla').innerHTML = '<p class="vacio">Nada por aquí todavía.</p>';
@@ -648,6 +684,10 @@
             <td class="num">${codigo(r.numero)}</td>
             <td>${escapar(r.nombre)}${
               r.telefono ? `<br><span class="resultado__detalle">${escapar(r.telefono)}</span>` : ''
+            }${
+              r.hospedador
+                ? `<br><span class="resultado__detalle">Lo hospeda ${escapar(r.hospedador)}</span>`
+                : ''
             }</td>
             <td>${r.bultos} bulto(s)${r.descripcion ? '<br>' + escapar(r.descripcion) : ''}</td>
             <td>${escapar(ubicacionDe(r))}</td>
@@ -659,13 +699,19 @@
                 entregado: 'Entregado ' + hora(r.entrega),
               }[r.estado]
             }${
+              r.estado === 'entregado' && r.retirado === 'hospedador'
+                ? `<br><span class="resultado__detalle">a ${escapar(r.hospedador)}</span>`
+                : ''
+            }${
               r.salidas > 0
                 ? `<br><span class="resultado__detalle">${r.salidas} salida${r.salidas === 1 ? '' : 's'}</span>`
                 : ''
             }</td>
             <td>${
               r.foto
-                ? `<img class="miniatura" src="${r.foto}" alt="Equipaje del ticket ${codigo(r.numero)}">`
+                ? `<img class="miniatura ampliable" src="${r.foto}" alt="Equipaje del ticket ${codigo(
+                    r.numero
+                  )}" title="Ver la foto en grande">`
                 : ''
             }<button type="button" class="boton boton--texto" data-foto="${r.numero}">${
               r.foto ? 'Cambiar' : 'Agregar'
@@ -703,10 +749,83 @@
     avisar(`Foto guardada en el ticket ${codigo(numero)}.`);
   }
 
+  const NOMBRE_FILTRO = {
+    custodia: 'solo los que están en custodia',
+    tomado: 'solo los tomados',
+    entregado: 'solo los entregados',
+    todos: 'todos los tickets',
+  };
+
+  /* La lista en papel. Sirve para dos cosas: repasar al cierre qué falta por
+     retirar, y seguir atendiendo a mano si el computador se apaga. Por eso la
+     última columna va en blanco cuando el bulto sigue ahí: es para firmar o
+     anotar quién se lo llevó. Las fotos no se imprimen, gastarían media hoja
+     cada una. */
+  function listaHTML() {
+    const filas = registrosFiltrados();
+    const hoja = hojaElegida();
+    const tomados = cuantos('tomado');
+
+    const celdas = filas
+      .map((r) => {
+        const situacion = {
+          custodia: 'En custodia',
+          tomado: 'Tomado ' + hora(r.tomado),
+          entregado: 'Entregado ' + hora(r.entrega),
+        }[r.estado];
+        const retiro =
+          r.estado === 'entregado'
+            ? escapar(r.retirado === 'hospedador' ? r.hospedador : r.nombre)
+            : '';
+        return `<tr>
+          <td class="num">${codigo(r.numero)}</td>
+          <td>${escapar(r.nombre)}${
+            r.telefono ? `<br>${escapar(r.telefono)}` : ''
+          }</td>
+          <td>${escapar(r.hospedador)}</td>
+          <td>${r.bultos}</td>
+          <td>${escapar(r.descripcion)}</td>
+          <td>${escapar(ubicacionDe(r))}</td>
+          <td>${situacion}</td>
+          <td class="planilla__firma">${retiro}</td>
+        </tr>`;
+      })
+      .join('');
+
+    return `
+      <h1 class="planilla__titulo">${escapar(estado.ajustes.evento)} · custodia de equipaje</h1>
+      <p class="planilla__datos">
+        ${filas.length} ticket(s) en la lista (${NOMBRE_FILTRO[filtro]}) ·
+        ${cuantos('custodia')} en custodia · ${tomados} tomado${tomados === 1 ? '' : 's'} ·
+        ${cuantos('entregado')} entregados · ${estado.registros.length} en total ·
+        impresa el ${fechaHora(new Date().toISOString())} · hoja ${hoja.nombre}
+      </p>
+      <table class="planilla__tabla">
+        <thead><tr>
+          <th>N°</th><th>Nombre</th><th>Lo hospeda</th><th>Bultos</th>
+          <th>Equipaje</th><th>Lugar</th><th>Estado</th><th>Retiró / firma</th>
+        </tr></thead>
+        <tbody>${celdas}</tbody>
+      </table>`;
+  }
+
+  function imprimirLista() {
+    if (!registrosFiltrados().length) return avisar('No hay nada que imprimir con ese filtro.', false);
+    imprimir(listaHTML());
+  }
+
+  function notaLista() {
+    const hoja = hojaElegida();
+    $('#l-nota').textContent =
+      `Se imprime lo que estás viendo (${NOMBRE_FILTRO[filtro]}), sin las fotos, en hoja ` +
+      `${hoja.nombre} — el tamaño se cambia en la pestaña Tickets. La última columna va en ` +
+      'blanco para firmar o anotar a mano quién retiró.';
+  }
+
   function exportarCSV() {
     const cabecera = [
-      'Ticket', 'Nombre', 'Telefono', 'Bultos', 'Descripcion', 'Zona', 'Posicion',
-      'Ingreso', 'Estado', 'Salidas', 'Tomado desde', 'Entrega',
+      'Ticket', 'Nombre', 'Telefono', 'Hospedador', 'Bultos', 'Descripcion', 'Zona', 'Posicion',
+      'Ingreso', 'Estado', 'Salidas', 'Tomado desde', 'Entrega', 'Retirado por',
     ];
     const NOMBRE_ESTADO = { custodia: 'En custodia', tomado: 'Tomado', entregado: 'Entregado' };
     const celda = (v) => `"${String(v == null ? '' : v).replace(/"/g, '""')}"`;
@@ -715,8 +834,9 @@
       .sort((a, b) => a.numero - b.numero)
       .map((r) =>
         [
-          codigo(r.numero), r.nombre, r.telefono, r.bultos, r.descripcion, r.zona, r.posicion,
+          codigo(r.numero), r.nombre, r.telefono, r.hospedador, r.bultos, r.descripcion, r.zona, r.posicion,
           fechaHora(r.ingreso), NOMBRE_ESTADO[r.estado], r.salidas, fechaHora(r.tomado), fechaHora(r.entrega),
+          r.estado === 'entregado' ? (r.retirado === 'hospedador' ? r.hospedador : r.nombre) : '',
         ]
           .map(celda)
           .join(';')
@@ -943,6 +1063,28 @@
     avisar('Todo borrado.');
   }
 
+  /* ══════════════════════════ Visor de fotos ══════════════════════════ */
+
+  // Las fotos se guardan achicadas —900 px de lado, o 560 si el navegador
+  // obliga a usar localStorage—, así que «en grande» llega hasta ahí. Alcanza
+  // de sobra para reconocer un bulto, que es para lo único que están.
+  let volverEl = null;
+
+  function abrirVisor(img) {
+    volverEl = document.activeElement;
+    $('#visor-foto').src = img.src;
+    $('#visor-foto').alt = img.alt;
+    $('#visor').hidden = false;
+    $('#visor-cerrar').focus();
+  }
+
+  function cerrarVisor() {
+    $('#visor').hidden = true;
+    $('#visor-foto').removeAttribute('src');
+    if (volverEl && volverEl.isConnected) volverEl.focus();
+    volverEl = null;
+  }
+
   /* ══════════════════════════ Conexiones ══════════════════════════ */
 
   function conectar() {
@@ -1015,8 +1157,14 @@
       if (boton) mostrarFicha(buscarRegistro(Number(boton.dataset.numero)));
     });
     $('#e-ficha').addEventListener('click', (e) => {
-      const paso = { 'e-entregar': 'entregado', 'e-tomar': 'tomado', 'e-devolver': 'custodia', 'e-deshacer': 'custodia' }[e.target.id];
-      if (paso) cambiarEstado(elegido, paso);
+      const paso = {
+        'e-entregar': ['entregado', 'dueno'],
+        'e-entregar-hospedador': ['entregado', 'hospedador'],
+        'e-tomar': ['tomado'],
+        'e-devolver': ['custodia'],
+        'e-deshacer': ['custodia'],
+      }[e.target.id];
+      if (paso) cambiarEstado(elegido, ...paso);
     });
 
     if ('BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -1035,6 +1183,7 @@
     });
     $('#l-busca').addEventListener('input', pintarListado);
     $('#l-csv').addEventListener('click', exportarCSV);
+    $('#l-imprimir').addEventListener('click', imprimirLista);
     $('#l-tabla').addEventListener('click', (e) => {
       const boton = e.target.closest('[data-foto]');
       if (!boton) return;
@@ -1064,6 +1213,18 @@
       if (archivo) importarRespaldo(archivo);
       e.target.value = '';
     });
+    // Cualquier foto de la aplicación se abre en grande con un clic.
+    document.addEventListener('click', (e) => {
+      const img = e.target.closest('.ampliable');
+      if (img) abrirVisor(img);
+    });
+    $('#visor').addEventListener('click', (e) => {
+      if (e.target.id !== 'visor-foto') cerrarVisor();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !$('#visor').hidden) cerrarVisor();
+    });
+
     $('#a-jornada').addEventListener('click', nuevaJornada);
     $('#a-borrar').addEventListener('click', borrarTodo);
   }

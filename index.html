@@ -61,6 +61,15 @@
     </div>
 
     <label class="campo">
+      <span class="campo__nombre">Hermano que lo hospeda <span class="campo__opcional">(opcional)</span></span>
+      <input type="text" id="r-hospedador" autocapitalize="words" placeholder="Juan Soto">
+      <span class="campo__pista">
+        Quién recibe a la visita en su casa. Si después viene él a buscar el equipaje para
+        llevarlo a su auto, aparece autorizado y se puede buscar por su nombre.
+      </span>
+    </label>
+
+    <label class="campo">
       <span class="campo__nombre">Descripción</span>
       <input type="text" id="r-descripcion" placeholder="Mochila negra con cintas rojas">
     </label>
@@ -108,8 +117,8 @@
 
   <div class="tarjeta">
     <label class="campo">
-      <span class="campo__nombre">Escanea el QR, o escribe el número o el nombre</span>
-      <input type="search" id="e-busca" class="busca" placeholder="07  ·  María" autocomplete="off">
+      <span class="campo__nombre">Escanea el QR, o escribe el número, el nombre o quién lo hospeda</span>
+      <input type="search" id="e-busca" class="busca" placeholder="07  ·  María  ·  quien la hospeda" autocomplete="off">
     </label>
     <button type="button" class="boton boton--suave" id="e-escanear" hidden>Escanear con la cámara</button>
     <div id="e-camara" class="camara" hidden>
@@ -134,8 +143,10 @@
       <button type="button" class="filtro" data-filtro="todos">Todos</button>
     </div>
     <input type="search" id="l-busca" class="busca busca--chica" placeholder="Buscar…" autocomplete="off">
-    <button type="button" class="boton boton--suave" id="l-csv">Descargar planilla</button>
+    <button type="button" class="boton boton--suave" id="l-imprimir">Imprimir la lista</button>
+    <button type="button" class="boton boton--suave" id="l-csv">Descargar en Excel</button>
   </div>
+  <p class="campo__pista" id="l-nota"></p>
 
   <input type="file" id="l-foto" accept="image/*" hidden>
   <div id="l-tabla" class="tabla-envoltura"></div>
@@ -247,6 +258,11 @@
 </section>
 
 </main>
+
+<div id="visor" class="visor" hidden>
+  <button type="button" class="visor__cerrar" id="visor-cerrar" aria-label="Cerrar la foto">Cerrar ✕</button>
+  <img id="visor-foto" class="visor__foto" alt="">
+</div>
 
 <!-- Solo para imprimir -->
 <div id="lamina" class="lamina" aria-hidden="true"></div>
