@@ -8,7 +8,17 @@
     evento: 'Confraternidad MINCAR',
     zonas: ['A', 'B', 'C'],
     posiciones: 20,
+    color: '#1a6154',
   };
+
+  const COLORES = [
+    { hex: '#1a6154', nombre: 'Verde' },
+    { hex: '#1c4f7c', nombre: 'Azul' },
+    { hex: '#7a2f3a', nombre: 'Burdeo' },
+    { hex: '#4a3b7a', nombre: 'Morado' },
+    { hex: '#6b4423', nombre: 'Café' },
+    { hex: '#3a4550', nombre: 'Pizarra' },
+  ];
 
   const ATAJOS = ['Mochila', 'Bolso', 'Maleta', 'Cartera', 'Bolsa', 'Coche', 'Abrigo'];
 
@@ -221,6 +231,97 @@
     const usadas = ocupadas(zona);
     for (let i = 1; i <= estado.ajustes.posiciones; i++) if (!usadas.has(i)) return i;
     return null;
+  }
+
+  /* ══════════════════════════ El color de la aplicación ══════════════════════════
+
+     Se deja elegir cualquier color, así que hay que asegurarse de que la
+     aplicación siga legible con el que sea. De un color se derivan cuatro:
+
+       acento  — el color tal cual, para los rellenos.
+       texto   — blanco o tinta, el que contraste mejor ENCIMA del acento.
+       oscuro  — el acento oscurecido hasta que se lea sobre fondo blanco. Sin
+                 esto, un amarillo elegido a la ligera dejaría la ubicación en
+                 grande prácticamente invisible.
+       suave   — apenas teñido, para fondos.
+
+     El umbral 4.5:1 es el que pide la norma de accesibilidad WCAG para texto. */
+
+  const aRGB = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
+
+  const aHex = (rgb) =>
+    '#' + rgb.map((v) => Math.round(Math.min(255, Math.max(0, v))).toString(16).padStart(2, '0')).join('');
+
+  function luminancia(rgb) {
+    const [r, g, b] = rgb.map((v) => {
+      const c = v / 255;
+      return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  }
+
+  function contraste(a, b) {
+    const [menor, mayor] = [luminancia(a), luminancia(b)].sort((x, y) => x - y);
+    return (mayor + 0.05) / (menor + 0.05);
+  }
+
+  const mezclar = (rgb, otro, parte) => rgb.map((v, i) => v * (1 - parte) + otro[i] * parte);
+
+  const BLANCO = [255, 255, 255];
+  const TINTA = [33, 37, 44];
+  const NEGRO = [0, 0, 0];
+
+  function paleta(hex) {
+    const base = aRGB(hex);
+
+    let oscuro = base;
+    // Oscurecer de a poco hasta que se lea sobre blanco.
+    for (let i = 0; i < 20 && contraste(oscuro, BLANCO) < 4.5; i++) {
+      oscuro = mezclar(oscuro, NEGRO, 0.08);
+    }
+
+    return {
+      acento: aHex(base),
+      texto: aHex(contraste(base, BLANCO) >= contraste(base, TINTA) ? BLANCO : TINTA),
+      oscuro: aHex(oscuro),
+      suave: aHex(mezclar(base, BLANCO, 0.88)),
+      fondo: aHex(mezclar(base, BLANCO, 0.945)),
+      linea: aHex(mezclar(base, BLANCO, 0.84)),
+      borde: aHex(mezclar(base, BLANCO, 0.66)),
+    };
+  }
+
+  const colorValido = (hex) => typeof hex === 'string' && /^#[0-9a-f]{6}$/i.test(hex);
+
+  function aplicarColor() {
+    const hex = colorValido(estado.ajustes.color) ? estado.ajustes.color : AJUSTES_INICIALES.color;
+    const p = paleta(hex);
+    const raiz = document.documentElement.style;
+
+    raiz.setProperty('--acento', p.acento);
+    raiz.setProperty('--acento-texto', p.texto);
+    raiz.setProperty('--acento-oscuro', p.oscuro);
+    raiz.setProperty('--acento-suave', p.suave);
+    raiz.setProperty('--fondo', p.fondo);
+    raiz.setProperty('--linea', p.linea);
+    raiz.setProperty('--borde', p.borde);
+
+    $('#a-color').value = hex;
+    $$('#a-tintes .tinte').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.color === hex)));
+
+    const sugerido = COLORES.find((c) => c.hex === hex);
+    $('#a-color-nota').textContent = sugerido
+      ? `Color: ${sugerido.nombre} (${hex}).`
+      : `Color propio: ${hex}. Si queda muy claro, la aplicación lo oscurece sola donde ` +
+        'hace falta para que el texto se siga leyendo.';
+  }
+
+  async function elegirColor(hex) {
+    if (!colorValido(hex)) return;
+    estado.ajustes.color = hex.toLowerCase();
+    aplicarColor();
+    estado.cambios++;
+    await guardar();
   }
 
   /* ══════════════════════════ Tickets ══════════════════════════ */
@@ -506,7 +607,7 @@
       ? `<button type="button" class="boton boton--principal boton--ancho" id="e-entregar">Lo retira ${escapar(
           nombreCorto(registro.nombre)
         )}</button>
-         <button type="button" class="boton boton--principal boton--ancho" id="e-entregar-hospedador">Lo retira ${escapar(
+         <button type="button" class="boton boton--otro boton--ancho" id="e-entregar-hospedador">Lo retira ${escapar(
            nombreCorto(registro.hospedador)
          )}, que lo hospeda</button>`
       : '<button type="button" class="boton boton--principal boton--ancho" id="e-entregar">Se lo lleva: entregar y cerrar</button>';
@@ -921,6 +1022,7 @@
 
   function pintarAjustes() {
     $('#a-evento').value = estado.ajustes.evento;
+    aplicarColor();
     $('#a-zonas').value = estado.ajustes.zonas.join(', ');
     $('#a-posiciones').value = estado.ajustes.posiciones;
 
@@ -959,6 +1061,7 @@
   }
 
   function aplicarAjustes() {
+    aplicarColor();
     document.title = estado.ajustes.evento;
     $('#titulo-evento').textContent = estado.ajustes.evento;
     if (!estado.ajustes.zonas.includes(recibir.zona)) {
@@ -1224,6 +1327,18 @@
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && !$('#visor').hidden) cerrarVisor();
     });
+
+    $('#a-tintes').innerHTML = COLORES.map(
+      (c) =>
+        `<button type="button" class="tinte" role="radio" aria-checked="false" ` +
+        `data-color="${c.hex}" style="background:${c.hex}" title="${c.nombre}">` +
+        `<span class="visualmente-oculto">${c.nombre}</span></button>`
+    ).join('');
+    $('#a-tintes').addEventListener('click', (e) => {
+      const boton = e.target.closest('.tinte');
+      if (boton) elegirColor(boton.dataset.color);
+    });
+    $('#a-color').addEventListener('input', (e) => elegirColor(e.target.value));
 
     $('#a-jornada').addEventListener('click', nuevaJornada);
     $('#a-borrar').addEventListener('click', borrarTodo);

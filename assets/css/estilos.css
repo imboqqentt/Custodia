@@ -9,13 +9,18 @@
   --suave: #5c6471;
   --linea: #e3ded5;
   --acento: #1a6154;
+  --acento-texto: #ffffff;
+  --acento-oscuro: #1a6154;
   --acento-suave: #e6f0ed;
+  --borde: var(--borde);
   --peligro: #9d3324;
   --peligro-suave: #fbeeeb;
   --ok: #2c7048;
   --ok-suave: #e8f2eb;
   --fuera: #8a5410;
   --fuera-suave: #fdf2e2;
+  --otro: #1f3f6b;
+  --otro-suave: #e9eff8;
   --sombra: 0 1px 2px rgba(33, 37, 44, .06), 0 4px 14px rgba(33, 37, 44, .05);
   --radio: 12px;
 }
@@ -84,7 +89,7 @@ h2 { font-size: 1.1rem; margin-bottom: .6rem; }
   white-space: nowrap;
 }
 
-.pestana[aria-selected="true"] { background: var(--acento); color: #fff; }
+.pestana[aria-selected="true"] { background: var(--acento); color: var(--acento-texto); }
 .pestana:focus-visible { outline: 3px solid var(--acento); outline-offset: 2px; }
 
 main { max-width: 60rem; margin: 0 auto; }
@@ -112,7 +117,7 @@ main { max-width: 60rem; margin: 0 auto; }
 input[type="text"], input[type="tel"], input[type="number"], input[type="search"], input[type="file"], select {
   width: 100%;
   padding: .65rem .8rem;
-  border: 1px solid #cfc8bd;
+  border: 1px solid var(--borde);
   border-radius: 9px;
   background: #fff;
   color: inherit;
@@ -143,7 +148,42 @@ input:focus-visible, select:focus-visible { outline: 3px solid var(--acento); ou
   cursor: pointer;
 }
 
-.atajo:hover { border-color: var(--acento); color: var(--acento); }
+.atajo:hover { border-color: var(--acento); color: var(--acento-oscuro); }
+
+/* ── Elegir el color ─────────────────────────────────────────── */
+
+.tintes { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1rem; }
+
+.tinte {
+  width: 2.6rem;
+  height: 2.6rem;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(33, 37, 44, .15) inset;
+  cursor: pointer;
+}
+
+.tinte[aria-checked="true"] { border-color: var(--tinta); box-shadow: 0 0 0 3px var(--papel) inset; }
+.tinte:focus-visible { outline: 3px solid var(--tinta); outline-offset: 2px; }
+
+.tinte-propio { display: flex; align-items: center; gap: .6rem; font-size: .9rem; color: var(--suave); }
+
+/* El input de color trae su propio recuadro; hay que vaciarlo para que se vea
+   como los demás círculos. Cada navegador lo llama distinto. */
+.tinte--propio { background: none; border: 2px solid var(--borde); }
+.tinte--propio::-webkit-color-swatch-wrapper { padding: 2px; }
+.tinte--propio::-webkit-color-swatch { border: 0; border-radius: 50%; }
+.tinte--propio::-moz-color-swatch { border: 0; border-radius: 50%; }
+
+.visualmente-oculto {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
 
 /* ── Botones ─────────────────────────────────────────────────── */
 
@@ -156,8 +196,22 @@ input:focus-visible, select:focus-visible { outline: 3px solid var(--acento); ou
   cursor: pointer;
 }
 
-.boton--principal { background: var(--acento); color: #fff; }
-.boton--suave { background: var(--papel); border-color: #cfc8bd; color: var(--tinta); }
+.boton--principal { background: var(--acento); color: var(--acento-texto); }
+
+/* Para el botón de entregarle el bulto a otra persona —el hermano que hospeda—.
+   No basta con cambiarle el color: en escala de grises un azul y un verde de la
+   misma luminosidad se ven iguales, y a alguien daltónico también. Por eso este
+   va al revés: fondo claro y borde grueso, distinto de lejos y sin depender del
+   color. Sigue siendo un botón de primera línea, no una opción secundaria. */
+.boton--otro {
+  padding: calc(.7rem - 1px) 1.1rem;
+  background: var(--otro-suave);
+  border: 2px solid var(--otro);
+  color: var(--otro);
+}
+
+.boton--otro.boton--ancho { padding: calc(.95rem - 1px); }
+.boton--suave { background: var(--papel); border-color: var(--borde); color: var(--tinta); }
 .boton--texto { background: none; color: var(--suave); text-decoration: underline; padding: .4rem .2rem; }
 .boton--peligro { background: var(--peligro); color: #fff; }
 .boton--ancho { width: 100%; padding: .95rem; font-size: 1.05rem; }
@@ -206,7 +260,7 @@ input:focus-visible, select:focus-visible { outline: 3px solid var(--acento); ou
 .zona {
   min-width: 3.5rem;
   padding: .6rem .9rem;
-  border: 1px solid #cfc8bd;
+  border: 1px solid var(--borde);
   border-radius: 9px;
   background: var(--papel);
   font: inherit;
@@ -214,14 +268,14 @@ input:focus-visible, select:focus-visible { outline: 3px solid var(--acento); ou
   cursor: pointer;
 }
 
-.zona[aria-checked="true"] { background: var(--acento); border-color: var(--acento); color: #fff; }
+.zona[aria-checked="true"] { background: var(--acento); border-color: var(--acento); color: var(--acento-texto); }
 
 .posiciones { display: flex; flex-wrap: wrap; gap: .3rem; }
 
 .posicion {
   width: 2.6rem;
   height: 2.6rem;
-  border: 1px solid #cfc8bd;
+  border: 1px solid var(--borde);
   border-radius: 8px;
   background: var(--papel);
   font: inherit;
@@ -229,7 +283,7 @@ input:focus-visible, select:focus-visible { outline: 3px solid var(--acento); ou
   cursor: pointer;
 }
 
-.posicion[aria-checked="true"] { background: var(--acento); border-color: var(--acento); color: #fff; }
+.posicion[aria-checked="true"] { background: var(--acento); border-color: var(--acento); color: var(--acento-texto); }
 .posicion--ocupada { background: #eceae5; color: #a9a49b; border-style: dashed; cursor: not-allowed; }
 
 /* ── Entregar ────────────────────────────────────────────────── */
@@ -262,7 +316,7 @@ input:focus-visible, select:focus-visible { outline: 3px solid var(--acento); ou
   font-size: 1.6rem;
   font-weight: 700;
   text-align: center;
-  color: var(--acento);
+  color: var(--acento-oscuro);
 }
 
 .resultado__nombre { font-weight: 600; }
@@ -273,13 +327,13 @@ input:focus-visible, select:focus-visible { outline: 3px solid var(--acento); ou
 .vacio { padding: 1.2rem; text-align: center; color: var(--suave); }
 
 .ficha { display: grid; gap: 1rem; grid-template-columns: 1fr; }
-.ficha__ubicacion { font-size: 2.6rem; font-weight: 700; line-height: 1.1; color: var(--acento); }
+.ficha__ubicacion { font-size: 2.6rem; font-weight: 700; line-height: 1.1; color: var(--acento-oscuro); }
 .ficha__etiqueta { font-size: .8rem; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--suave); }
 .ficha__foto { width: 100%; max-width: 16rem; border-radius: var(--radio); border: 1px solid var(--linea); }
 .ficha__dato { margin: 0 0 .5rem; }
 .ficha__entregado { padding: .8rem 1rem; border-radius: 9px; background: var(--ok-suave); color: var(--ok); font-weight: 600; }
 .ficha__fuera { padding: .8rem 1rem; border-radius: 9px; background: var(--fuera-suave); color: var(--fuera); font-weight: 600; }
-.ficha__hospeda { margin: .8rem 0 0; padding: .7rem 1rem; border-radius: 9px; background: var(--acento-suave); color: var(--acento); }
+.ficha__hospeda { margin: .8rem 0 0; padding: .7rem 1rem; border-radius: 9px; background: var(--acento-suave); color: var(--acento-oscuro); }
 .ficha__ubicacion--fuera { color: var(--fuera); font-size: 2rem; }
 .acciones { display: grid; gap: .5rem; margin-top: 1rem; }
 
@@ -327,7 +381,7 @@ input:focus-visible, select:focus-visible { outline: 3px solid var(--acento); ou
 
 .filtro {
   padding: .5rem .8rem;
-  border: 1px solid #cfc8bd;
+  border: 1px solid var(--borde);
   border-radius: 8px;
   background: var(--papel);
   font: inherit;
@@ -335,7 +389,7 @@ input:focus-visible, select:focus-visible { outline: 3px solid var(--acento); ou
   cursor: pointer;
 }
 
-.filtro--activo { background: var(--acento); border-color: var(--acento); color: #fff; }
+.filtro--activo { background: var(--acento); border-color: var(--acento); color: var(--acento-texto); }
 
 .tabla-envoltura { overflow-x: auto; background: var(--papel); border: 1px solid var(--linea); border-radius: var(--radio); box-shadow: var(--sombra); }
 

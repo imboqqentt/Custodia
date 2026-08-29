@@ -190,7 +190,29 @@ riesgo real de robo**. Varias decisiones vienen de ahí:
 
 En *Ajustes* se cambia el nombre del evento —viene con «Confraternidad MINCAR»—,
 los nombres de las zonas —ponles los que de verdad usen: «Entrada», «Altar»,
-«Cocina»— y cuántas posiciones tiene cada una.
+«Cocina»—, cuántas posiciones tiene cada una y el color.
+
+### El color
+
+Hay seis colores sugeridos en círculos y un selector para cualquier otro. Tiñe
+la aplicación completa: el fondo, los bordes, las pestañas, los botones y la
+ubicación en grande. Se aplica y se guarda al instante.
+
+Las tarjetas se quedan blancas a propósito: sobre un fondo de color, una lista
+de cincuenta nombres cuesta bastante más de leer.
+
+Se puede elegir cualquier color, incluso uno horrible, sin romper nada. De ese
+color la aplicación deriva los que necesita: elige texto blanco o negro sobre
+los botones según cuál contraste mejor, y oscurece el tono cuando lo usa como
+texto sobre blanco. Sin eso, un amarillo claro dejaría la ubicación en grande
+prácticamente invisible. Está comprobado con `#ffe14d`: el texto de los botones
+queda en 11,8:1 y la ubicación en 4,7:1, sobre el 4,5:1 que pide la norma de
+accesibilidad.
+
+Un detalle relacionado: el botón para entregarle el bulto al hermano que
+hospeda no se distingue del otro solo por el color, sino por la forma —fondo
+claro y borde grueso—. Así sigue siendo distinto aunque elijas un color parecido
+al suyo, y también para quien no distingue bien los colores.
 
 ## El día del evento
 
