@@ -1317,7 +1317,44 @@ if (typeof module !== 'undefined' && module.exports) module.exports = QR;
     }, bien ? 3500 : 9000);
   }
 
-  function descargar(nombre, contenido, tipo) {
+  /* Descargar un archivo.
+
+     Abierta como un archivo en el computador —que es como se va a usar en el
+     evento— basta con un enlace. Pero si la página está publicada en claude.ai,
+     corre dentro de un visor que no deja que una página descargue nada por su
+     cuenta: hay que pedírselo al visor, que le muestra una confirmación a la
+     persona y puede decir que no.
+
+     Se pregunta apenas arranca porque la respuesta puede tardar varios
+     segundos. Fuera de claude.ai window.claude no existe y todo sigue por el
+     camino de siempre. */
+  const visorDescargas =
+    window.claude && typeof window.claude.use === 'function'
+      ? window.claude.use('downloads').catch(() => null)
+      : Promise.resolve(null);
+
+  const FALLAS = {
+    declined: 'No se guardó el archivo: se canceló la descarga.',
+    too_large: 'El archivo pesa demasiado para guardarlo así. El tope son 16 MB.',
+    rate_limited: 'Hay otra descarga esperando respuesta. Contéstala y vuelve a intentar.',
+  };
+
+  // Devuelve true solo si el archivo quedó guardado de verdad. Quien borre algo
+  // después de respaldar tiene que mirar ese valor antes de borrar.
+  async function descargar(nombre, contenido, tipo) {
+    const visor = await visorDescargas;
+
+    if (visor) {
+      try {
+        await visor.save({ filename: nombre, data: contenido });
+        return true;
+      } catch (error) {
+        const codigo = (error && error.code) || 'unavailable';
+        avisar(FALLAS[codigo] || 'No se pudo guardar el archivo aquí.', false);
+        return false;
+      }
+    }
+
     const enlace = document.createElement('a');
     enlace.href = URL.createObjectURL(new Blob([contenido], { type: tipo }));
     enlace.download = nombre;
@@ -1325,6 +1362,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = QR;
     enlace.click();
     enlace.remove();
     setTimeout(() => URL.revokeObjectURL(enlace.href), 1000);
+    return true;
   }
 
   /* Un ticket pasa por tres estados:
@@ -2061,7 +2099,7 @@ if (typeof module !== 'undefined' && module.exports) module.exports = QR;
       'blanco para firmar o anotar a mano quién retiró.';
   }
 
-  function exportarCSV() {
+  async function exportarCSV() {
     const cabecera = [
       'Ticket', 'Nombre', 'Telefono', 'Hospedador', 'Bultos', 'Descripcion', 'Zona', 'Posicion',
       'Ingreso', 'Estado', 'Salidas', 'Tomado desde', 'Entrega', 'Retirado por',
@@ -2225,16 +2263,19 @@ if (typeof module !== 'undefined' && module.exports) module.exports = QR;
     insignia.hidden = pendientes === 0;
   }
 
-  function exportarRespaldo() {
+  async function exportarRespaldo() {
     const sello = new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-');
-    descargar(
+    const guardado = await descargar(
       `custodia-respaldo-${sello}.json`,
       JSON.stringify({ version: 1, ajustes: estado.ajustes, registros: estado.registros }, null, 1),
       'application/json'
     );
+    if (!guardado) return false;
+
     estado.respaldadoEn = estado.cambios;
-    guardar().catch(() => {});
+    await guardar().catch(() => {});
     actualizarResumen();
+    return true;
   }
 
   async function importarRespaldo(archivo) {
@@ -2273,7 +2314,11 @@ if (typeof module !== 'undefined' && module.exports) module.exports = QR;
       )
     ) return;
 
-    exportarRespaldo();
+    // Primero el respaldo, y solo se borra si de verdad quedó guardado.
+    if (!(await exportarRespaldo())) {
+      return avisar('No se borró nada: el respaldo no alcanzó a guardarse.', false);
+    }
+
     estado.registros = [];
     estado.cambios++;
     await guardar();
