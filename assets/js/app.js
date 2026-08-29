@@ -261,12 +261,18 @@
     return n;
   }
 
-  function ocupadas(zona) {
-    return new Set(aCargo().filter((r) => r.zona === zona).map((r) => r.posicion));
+  // «excepto» es el ticket que se está editando: su propia posición no puede
+  // aparecerle bloqueada, o no habría cómo dejarlo donde ya está.
+  function ocupadas(zona, excepto = null) {
+    return new Set(
+      aCargo()
+        .filter((r) => r.zona === zona && r.numero !== excepto)
+        .map((r) => r.posicion)
+    );
   }
 
   function primeraLibre(zona) {
-    const usadas = ocupadas(zona);
+    const usadas = ocupadas(zona, recibir.editando);
     for (let i = 1; i <= estado.ajustes.posiciones; i++) if (!usadas.has(i)) return i;
     return null;
   }
@@ -412,6 +418,8 @@
     zona: null,
     posicion: null,
     ultimo: null, // el ticket recién emitido, para poder reimprimirlo
+    editando: null, // el ticket que se está corrigiendo, o null si es uno nuevo
+    volverA: 'recibir', // a qué pestaña volver al terminar de corregir
   };
 
   function pintarZonas() {
@@ -433,7 +441,7 @@
       $('#r-ubicacion-elegida').textContent = 'Elige una zona.';
       return;
     }
-    const usadas = ocupadas(recibir.zona);
+    const usadas = ocupadas(recibir.zona, recibir.editando);
     let html = '';
     for (let i = 1; i <= estado.ajustes.posiciones; i++) {
       const ocupada = usadas.has(i);
@@ -448,23 +456,78 @@
       : 'Elige una posición.';
   }
 
+  function mostrarFoto(dato) {
+    recibir.foto = dato || null;
+    const vista = $('#r-foto-vista');
+    if (recibir.foto) {
+      vista.src = recibir.foto;
+      vista.hidden = false;
+      $('#r-foto-quitar').hidden = false;
+    } else {
+      vista.hidden = true;
+      vista.removeAttribute('src');
+      $('#r-foto-quitar').hidden = true;
+    }
+    $('#r-foto-camara').value = '';
+    $('#r-foto-archivo').value = '';
+  }
+
+  // El mismo formulario sirve para recibir y para corregir. Duplicarlo habría
+  // significado mantener dos veces las mismas validaciones y la misma grilla de
+  // posiciones, y que se fueran separando con el tiempo.
   function prepararRecibir() {
-    recibir.foto = null;
-    recibir.posicion = null;
+    recibir.editando = null;
     $('#forma-recibir').reset();
     $('#r-numero').value = siguienteNumero();
     $('#r-bultos').value = 1;
-    $('#r-foto-vista').hidden = true;
-    $('#r-foto-vista').removeAttribute('src');
-    $('#r-foto-quitar').hidden = true;
+    mostrarFoto(null);
+
     if (!recibir.zona || !estado.ajustes.zonas.includes(recibir.zona)) {
       recibir.zona = estado.ajustes.zonas[0] || null;
     }
     recibir.posicion = recibir.zona ? primeraLibre(recibir.zona) : null;
     pintarZonas();
+
+    $('#r-editando').hidden = true;
+    $('#r-guardar').textContent = 'Guardar y ver el ticket';
     $('#comprobante').hidden = true;
     $('#forma-recibir').hidden = false;
     $('#r-nombre').focus();
+  }
+
+  function editarRegistro(numero, volverA) {
+    const registro = buscarRegistro(numero);
+    if (!registro) return;
+
+    recibir.editando = numero;
+    recibir.volverA = volverA;
+
+    $('#forma-recibir').reset();
+    $('#r-numero').value = registro.numero;
+    $('#r-nombre').value = registro.nombre;
+    $('#r-telefono').value = registro.telefono;
+    $('#r-hospedador').value = registro.hospedador;
+    $('#r-bultos').value = registro.bultos;
+    $('#r-descripcion').value = registro.descripcion;
+    mostrarFoto(registro.foto);
+
+    recibir.zona = estado.ajustes.zonas.includes(registro.zona) ? registro.zona : estado.ajustes.zonas[0];
+    recibir.posicion = recibir.zona === registro.zona ? registro.posicion : primeraLibre(recibir.zona);
+    pintarZonas();
+
+    $('#r-editando-texto').textContent = `Corrigiendo el ticket ${codigo(numero)} de ${registro.nombre}.`;
+    $('#r-editando').hidden = false;
+    $('#r-guardar').textContent = 'Guardar los cambios';
+    $('#comprobante').hidden = true;
+    $('#forma-recibir').hidden = false;
+    mostrarPanel('recibir');
+    $('#r-nombre').focus();
+  }
+
+  function cancelarEdicion() {
+    const volver = recibir.volverA;
+    prepararRecibir();
+    if (volver !== 'recibir') mostrarPanel(volver);
   }
 
   // Las fotos se achican bastante a propósito. Sirven para reconocer un bulto,
@@ -497,15 +560,19 @@
 
     const numero = Number($('#r-numero').value);
     const nombre = $('#r-nombre').value.trim();
+    const corrigiendo = recibir.editando;
 
     if (!nombre) return avisar('Falta el nombre.', false);
     if (!numero || numero < 1) return avisar('El número de ticket no es válido.', false);
-    if (buscarRegistro(numero)) {
+    // Al corregir se puede cambiar el número —por ejemplo si se anotó uno y se
+    // entregó otro—, pero no puede chocar con el de otra persona.
+    const dueno = buscarRegistro(numero);
+    if (dueno && dueno.numero !== corrigiendo) {
       return avisar(`El ticket ${codigo(numero)} ya está usado. Prueba con otro número.`, false);
     }
     if (!recibir.zona || !recibir.posicion) return avisar('Falta indicar dónde queda el equipaje.', false);
 
-    estado.registros.push({
+    const datos = {
       numero,
       nombre,
       telefono: $('#r-telefono').value.trim(),
@@ -515,6 +582,34 @@
       foto: recibir.foto,
       zona: recibir.zona,
       posicion: recibir.posicion,
+    };
+
+    if (corrigiendo != null) {
+      const registro = buscarRegistro(corrigiendo);
+      const antes = { ...registro };
+      // Solo cambian los datos: el estado, la hora de ingreso y el historial de
+      // salidas son hechos ocurridos, no algo que se corrija en un formulario.
+      Object.assign(registro, datos);
+      estado.cambios++;
+
+      try {
+        await guardar();
+      } catch (_) {
+        Object.assign(registro, antes);
+        estado.cambios--;
+        return;
+      }
+
+      const volver = recibir.volverA;
+      prepararRecibir();
+      if (volver !== 'recibir') mostrarPanel(volver);
+      actualizarResumen();
+      pintarListado();
+      return avisar(`Ticket ${codigo(numero)} corregido.`);
+    }
+
+    estado.registros.push({
+      ...datos,
       ingreso: new Date().toISOString(),
       estado: 'custodia',
       tomado: null,
@@ -682,6 +777,7 @@
             ${hospedaje}
             ${situacion}
             <div class="acciones">${acciones}</div>
+            <button type="button" class="boton boton--texto" id="e-editar">Corregir los datos de este ticket</button>
           </div>
           ${foto}
         </div>
@@ -820,7 +916,7 @@
         <tbody>${filas
           .map(
             (r) => `<tr>
-            <td class="num">${codigo(r.numero)}</td>
+            <td class="num">${codigo(r.numero)}<br><button type="button" class="boton boton--texto" data-editar="${r.numero}">Editar</button></td>
             <td>${escapar(r.nombre)}${
               r.telefono ? `<br><span class="resultado__detalle">${escapar(r.telefono)}</span>` : ''
             }${
@@ -1279,24 +1375,15 @@
       const archivo = e.target.files && e.target.files[0];
       if (!archivo) return;
       try {
-        recibir.foto = await comprimirFoto(archivo);
-        $('#r-foto-vista').src = recibir.foto;
-        $('#r-foto-vista').hidden = false;
-        $('#r-foto-quitar').hidden = false;
+        mostrarFoto(await comprimirFoto(archivo));
       } catch (error) {
         avisar(error.message, false);
       }
     };
     $('#r-foto-camara').addEventListener('change', tomarFoto);
     $('#r-foto-archivo').addEventListener('change', tomarFoto);
-
-    $('#r-foto-quitar').addEventListener('click', () => {
-      recibir.foto = null;
-      $('#r-foto-camara').value = '';
-      $('#r-foto-archivo').value = '';
-      $('#r-foto-vista').hidden = true;
-      $('#r-foto-quitar').hidden = true;
-    });
+    $('#r-foto-quitar').addEventListener('click', () => mostrarFoto(null));
+    $('#r-cancelar').addEventListener('click', cancelarEdicion);
 
     // Entregar
     $('#e-busca').addEventListener('input', buscarEntrega);
@@ -1312,7 +1399,8 @@
         'e-devolver': ['custodia'],
         'e-deshacer': ['custodia'],
       }[e.target.id];
-      if (paso) cambiarEstado(elegido, ...paso);
+      if (paso) return cambiarEstado(elegido, ...paso);
+      if (e.target.id === 'e-editar') editarRegistro(elegido, 'entregar');
     });
 
     if ('BarcodeDetector' in window && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
@@ -1333,6 +1421,9 @@
     $('#l-csv').addEventListener('click', exportarCSV);
     $('#l-imprimir').addEventListener('click', imprimirLista);
     $('#l-tabla').addEventListener('click', (e) => {
+      const corregir = e.target.closest('[data-editar]');
+      if (corregir) return editarRegistro(Number(corregir.dataset.editar), 'listado');
+
       const boton = e.target.closest('[data-foto]');
       if (!boton) return;
       fotoPara = Number(boton.dataset.foto);

@@ -108,6 +108,21 @@ main { max-width: 60rem; margin: 0 auto; }
 .tarjeta--peligro { border-color: #edd3cd; background: var(--peligro-suave); }
 .tarjeta--peligro h2 { color: var(--peligro); }
 
+.editando {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem 1rem;
+  align-items: center;
+  margin: 0 0 1.2rem;
+  padding: .7rem 1rem;
+  border: 1px solid var(--borde);
+  border-left: 5px solid var(--acento);
+  border-radius: 9px;
+  background: var(--acento-suave);
+  color: var(--acento-oscuro);
+  font-weight: 600;
+}
+
 .campo { display: block; margin-bottom: 1rem; border: 0; padding: 0; }
 .campo__nombre { display: block; margin-bottom: .3rem; font-size: .88rem; font-weight: 600; }
 .campo__opcional { font-weight: 400; color: var(--suave); }

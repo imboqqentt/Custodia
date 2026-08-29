@@ -36,6 +36,11 @@
 <section id="panel-recibir" class="panel" role="tabpanel" aria-label="Recibir">
 
   <form id="forma-recibir" class="tarjeta" autocomplete="off">
+    <p id="r-editando" class="editando" hidden>
+      <span id="r-editando-texto"></span>
+      <button type="button" class="boton boton--texto" id="r-cancelar">Cancelar y dejarlo como estaba</button>
+    </p>
+
     <div class="fila fila--numero">
       <label class="campo campo--angosto">
         <span class="campo__nombre">Ticket</span>
@@ -98,7 +103,7 @@
       <p class="campo__pista" id="r-ubicacion-elegida">—</p>
     </fieldset>
 
-    <button type="submit" class="boton boton--principal boton--ancho">Guardar y ver el ticket</button>
+    <button type="submit" class="boton boton--principal boton--ancho" id="r-guardar">Guardar y ver el ticket</button>
   </form>
 
   <div id="comprobante" class="tarjeta comprobante" hidden>

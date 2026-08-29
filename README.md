@@ -57,6 +57,29 @@ vuelve al mismo sitio con un clic. Cada ticket guarda además cuántas veces se
 ha sacado, y el filtro *Tomados* del listado muestra de una lo que está afuera
 en este momento — útil al cierre, para ir a buscar lo que nadie devolvió.
 
+## Corregir un registro
+
+Todo se puede arreglar después: el nombre mal escrito, el teléfono, quién
+hospeda, los bultos, la descripción, la foto, la ubicación y hasta **el número
+del ticket** —por si se anotó uno y se entregó otro—.
+
+Se entra por el botón *Editar* de cada fila del listado, o por *Corregir los
+datos de este ticket* en la ficha de Entregar, que es donde uno suele darse
+cuenta. Se abre el mismo formulario de recibir, con todo cargado y un aviso
+arriba de qué ticket se está corrigiendo; el botón pasa a decir *Guardar los
+cambios* y al lado hay uno para cancelar sin tocar nada.
+
+Dos detalles que importan:
+
+- Al corregir, **su propia posición no aparece bloqueada**. Si lo estuviera, no
+  habría manera de dejar el bulto donde ya está.
+- **El número nuevo no puede ser el de otra persona.** Ahí sí avisa y no guarda.
+
+Lo que no se edita es lo que ya pasó: la hora en que entró, el estado, cuántas
+veces se sacó y quién lo retiró. Eso son hechos ocurridos, no datos que se
+tipearon mal, y corregirlos a mano dejaría el registro sin valor justo cuando
+haga falta.
+
 ## El hermano que hospeda
 
 Al recibir se puede anotar **quién hospeda a la visita**. No es un dato de
