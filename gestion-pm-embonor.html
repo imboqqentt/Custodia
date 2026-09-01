@@ -48,10 +48,10 @@
     color-scheme:dark;
   }
   *{box-sizing:border-box}
-  html{-webkit-text-size-adjust:100%}
+  html{-webkit-text-size-adjust:100%; scroll-padding-top:64px}
   body{margin:0; background:var(--ground); color:var(--ink);
     font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-    font-size:17px; line-height:1.6;}
+    font-size:17px; line-height:1.6; overflow-wrap:break-word;}
   .mono,code{font-family:ui-monospace,"Cascadia Mono",Consolas,"Roboto Mono",monospace}
   h1,h2,h3,h4{margin:0; text-wrap:balance; letter-spacing:-.015em}
   p,ul,ol{margin:0}
@@ -153,7 +153,11 @@
   .cl-card ul{list-style:none; padding:0; margin:0}
   .cl-card li{padding:11px 16px 11px 40px; border-bottom:1px solid var(--line); font-size:15px; color:var(--ink-2); position:relative}
   .cl-card li:last-child{border-bottom:0}
-  .cl-card li::before{content:"□"; position:absolute; left:16px; top:9px; font-size:17px; color:var(--accent)}
+  .cl-card li::before{content:"\25A1"; position:absolute; left:16px; top:9px; font-size:17px; color:var(--accent)}
+  .arbol li{padding:12px 15px; display:flex; gap:10px; align-items:center; justify-content:space-between; flex-wrap:wrap}
+  .arbol li::before{content:none}
+  .arbol li b{color:var(--ink); font-weight:650}
+  .arbol li:first-child{background:var(--surface-2); color:var(--ink)}
 
   figure{margin:0; border:1px solid var(--line); background:var(--surface); box-shadow:var(--shadow)}
   .figbox{overflow-x:auto; padding:20px 20px 6px}
@@ -163,10 +167,47 @@
   footer{border-top:1px solid var(--line); padding:28px 0 54px; font-size:13px; color:var(--ink-3)}
   footer p+p{margin-top:7px}
 
+  .solo-movil{display:none}
+
   @media (max-width:760px){
     .rules{grid-template-columns:1fr}
     .two{grid-template-columns:1fr}
-    table{min-width:520px}
+  }
+
+  /* ---------- teléfono: tablas apiladas, sin scroll lateral ---------- */
+  @media (max-width:700px){
+    body{font-size:16px}
+    .wrap{padding:0 16px}
+    .hero{padding:34px 0 26px}
+    section{padding:34px 0}
+    .bar-in{gap:14px}
+    .bar nav{gap:14px}
+
+    .tw{border:0; box-shadow:none; overflow:visible; background:transparent}
+    table{min-width:0; display:block; font-size:15px}
+    thead{display:none}
+    tbody,tr,td{display:block; width:100%}
+    tr{border:1px solid var(--line); background:var(--surface); box-shadow:var(--shadow); margin-bottom:12px}
+    tr:last-child{margin-bottom:0}
+    td{border-bottom:1px solid var(--line); padding:11px 15px}
+    tr td:last-child{border-bottom:0}
+    td::before{
+      content:attr(data-l); display:block; font-size:10.5px; letter-spacing:.11em;
+      text-transform:uppercase; color:var(--ink-3); font-weight:700; margin-bottom:5px;
+    }
+    td[data-l=""]::before{display:none}
+    tr td:first-child{background:var(--surface-2); font-weight:650}
+    tr td:first-child::before{display:none}
+    td.ctr{text-align:left}
+
+    .solo-movil{display:block}
+    .solo-escritorio{display:none}
+
+    .tool-body{padding:18px 15px 20px}
+    .qtext{font-size:19px}
+    .opt{padding:15px 15px; font-size:15.5px}
+    .res-grid{grid-template-columns:1fr}
+    .cl-card li{font-size:15px}
   }
   @media print{
     .bar,.tool,.noprint{display:none!important}
@@ -234,7 +275,7 @@
       <div class="tool-body" id="toolBody" aria-live="polite"></div>
     </div>
 
-    <figure>
+    <figure class="solo-escritorio">
       <div class="figbox">
         <svg viewBox="0 0 900 420" role="img" aria-label="Árbol de decisión: si el objeto requiere intervención inmediata y no hay cambio de componente es clave 310; con cambio de componente y sin detención de línea es 311; con detención de línea es 312; si no requiere intervención inmediata y viene de un aviso N1 es 313, y si viene de un aviso N2 es PM02 clave 410.">
           <defs>
@@ -287,6 +328,18 @@
       </div>
       <figcaption>La misma decisión, dibujada: primero la urgencia, después el componente, al final el efecto en la línea.</figcaption>
     </figure>
+
+    <div class="cl-card solo-movil arbol">
+      <h4>El mismo árbol, en texto</h4>
+      <ul>
+        <li><b>¿Requiere intervención inmediata?</b></li>
+        <li>Sí, y <b>no</b> cambié componente <span class="k k310">310</span></li>
+        <li>Sí, cambié componente y la línea <b>siguió</b> <span class="k k311">311</span></li>
+        <li>Sí, cambié componente y la línea <b>paró</b> <span class="k k312">312</span></li>
+        <li>No, y viene de un <b>aviso N1</b> <span class="k k313">313</span></li>
+        <li>No, y viene de un <b>aviso N2</b> <span class="k k02">410</span></li>
+      </ul>
+    </div>
   </div>
 </section>
 
@@ -301,19 +354,19 @@
         <thead><tr><th>Concepto</th><th>Qué significa</th><th>Qué corresponde</th></tr></thead>
         <tbody>
           <tr>
-            <td><strong>Falla</strong><small>síntoma</small></td>
-            <td>El objeto <strong>se está volviendo incapaz</strong> de realizar su función. El síntoma se puede detectar antes de la avería.</td>
-            <td>Un <strong>aviso</strong> (N1 o N2) para planificar dentro de corto plazo.</td>
+            <td data-l="Concepto"><strong>Falla</strong><small>síntoma</small></td>
+            <td data-l="Qué significa">El objeto <strong>se está volviendo incapaz</strong> de realizar su función. El síntoma se puede detectar antes de la avería.</td>
+            <td data-l="Qué corresponde">Un <strong>aviso</strong> (N1 o N2) para planificar dentro de corto plazo.</td>
           </tr>
           <tr>
-            <td><strong>Avería</strong><small>pérdida de función</small></td>
-            <td>El objeto <strong>no puede realizar su función</strong>. Hay que reparar o reemplazar el componente de forma correctiva inmediata.</td>
-            <td>Orden <strong>PM01</strong>: <span class="k k311">311</span> o <span class="k k312">312</span>, según si detuvo la línea.</td>
+            <td data-l="Concepto"><strong>Avería</strong><small>pérdida de función</small></td>
+            <td data-l="Qué significa">El objeto <strong>no puede realizar su función</strong>. Hay que reparar o reemplazar el componente de forma correctiva inmediata.</td>
+            <td data-l="Qué corresponde">Orden <strong>PM01</strong>: <span class="k k311">311</span> o <span class="k k312">312</span>, según si detuvo la línea.</td>
           </tr>
           <tr>
-            <td><strong>Ajuste</strong><small>sin cambio de pieza</small></td>
-            <td>Requiere intervención inmediata, pero se resuelve ajustando parámetros o mecánicamente. <strong>No hay cambio ni reparación de componente.</strong></td>
-            <td>Orden <strong>PM01</strong>: <span class="k k310">310</span>. Puede detener la línea o no.</td>
+            <td data-l="Concepto"><strong>Ajuste</strong><small>sin cambio de pieza</small></td>
+            <td data-l="Qué significa">Requiere intervención inmediata, pero se resuelve ajustando parámetros o mecánicamente. <strong>No hay cambio ni reparación de componente.</strong></td>
+            <td data-l="Qué corresponde">Orden <strong>PM01</strong>: <span class="k k310">310</span>. Puede detener la línea o no.</td>
           </tr>
         </tbody>
       </table>
@@ -343,16 +396,16 @@
         <thead><tr><th>Aviso</th><th>Cuándo se usa</th><th>Quién lo registra</th><th>Deriva en</th></tr></thead>
         <tbody>
           <tr>
-            <td><span class="k k311">N1</span><small>fortuito</small></td>
-            <td>Síntoma registrado <strong>de manera fortuita</strong>, no proveniente de ningún plan de mantenimiento.</td>
-            <td>Quien lo detecta<small>Aunque esté haciendo otra tarea.</small></td>
-            <td>Orden PM01 <span class="k k313">313</span></td>
+            <td data-l="Aviso"><span class="k k311">N1</span><small>fortuito</small></td>
+            <td data-l="Cuándo se usa">Síntoma registrado <strong>de manera fortuita</strong>, no proveniente de ningún plan de mantenimiento.</td>
+            <td data-l="Quién lo registra">Quien lo detecta<small>Aunque esté haciendo otra tarea.</small></td>
+            <td data-l="Deriva en">Orden PM01 <span class="k k313">313</span></td>
           </tr>
           <tr>
-            <td><span class="k k03">N2</span><small>desde plan</small></td>
-            <td>Síntoma registrado <strong>en una inspección proveniente de un plan</strong> de mantenimiento o inspección predictiva.</td>
-            <td>Quien ejecuta el plan<small>Sobre objetos prescritos para inspección.</small></td>
-            <td>Orden PM02 <span class="k k02">410</span></td>
+            <td data-l="Aviso"><span class="k k03">N2</span><small>desde plan</small></td>
+            <td data-l="Cuándo se usa">Síntoma registrado <strong>en una inspección proveniente de un plan</strong> de mantenimiento o inspección predictiva.</td>
+            <td data-l="Quién lo registra">Quien ejecuta el plan<small>Sobre objetos prescritos para inspección.</small></td>
+            <td data-l="Deriva en">Orden PM02 <span class="k k02">410</span></td>
           </tr>
         </tbody>
       </table>
@@ -376,10 +429,10 @@
       <table>
         <thead><tr><th>Clave</th><th>¿Cambio de componente?</th><th>¿Intervención inmediata?</th><th>¿Detiene la línea?</th><th>Quién crea</th></tr></thead>
         <tbody>
-          <tr><td><span class="k k310">310</span> <strong>Ajustes</strong></td><td class="ctr no">NO</td><td class="ctr si">SÍ</td><td class="ctr">Puede o no</td><td><span class="who">Técnico</span></td></tr>
-          <tr><td><span class="k k311">311</span> <strong>Avería sin detención</strong></td><td class="ctr si">SÍ</td><td class="ctr si">SÍ</td><td class="ctr no">NO</td><td><span class="who">Técnico</span></td></tr>
-          <tr><td><span class="k k312">312</span> <strong>Avería con detención</strong></td><td class="ctr si">SÍ</td><td class="ctr si">SÍ</td><td class="ctr si">SÍ</td><td><span class="who">Técnico</span></td></tr>
-          <tr><td><span class="k k313">313</span> <strong>Correctivo programado</strong><small>viene de un aviso N1</small></td><td class="ctr si">SÍ</td><td class="ctr no">NO</td><td class="ctr no">NO</td><td><span class="who">Planificador</span></td></tr>
+          <tr><td data-l="Clave"><span class="k k310">310</span> <strong>Ajustes</strong></td><td data-l="¿Cambio de componente?" class="ctr no">NO</td><td data-l="¿Intervención inmediata?" class="ctr si">SÍ</td><td data-l="¿Detiene la línea?" class="ctr">Puede o no</td><td data-l="Quién crea"><span class="who">Técnico</span></td></tr>
+          <tr><td data-l="Clave"><span class="k k311">311</span> <strong>Avería sin detención</strong></td><td data-l="¿Cambio de componente?" class="ctr si">SÍ</td><td data-l="¿Intervención inmediata?" class="ctr si">SÍ</td><td data-l="¿Detiene la línea?" class="ctr no">NO</td><td data-l="Quién crea"><span class="who">Técnico</span></td></tr>
+          <tr><td data-l="Clave"><span class="k k312">312</span> <strong>Avería con detención</strong></td><td data-l="¿Cambio de componente?" class="ctr si">SÍ</td><td data-l="¿Intervención inmediata?" class="ctr si">SÍ</td><td data-l="¿Detiene la línea?" class="ctr si">SÍ</td><td data-l="Quién crea"><span class="who">Técnico</span></td></tr>
+          <tr><td data-l="Clave"><span class="k k313">313</span> <strong>Correctivo programado</strong><small>viene de un aviso N1</small></td><td data-l="¿Cambio de componente?" class="ctr si">SÍ</td><td data-l="¿Intervención inmediata?" class="ctr no">NO</td><td data-l="¿Detiene la línea?" class="ctr no">NO</td><td data-l="Quién crea"><span class="who">Planificador</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -394,10 +447,10 @@
       <table>
         <thead><tr><th>Clave</th><th>Qué cubre</th></tr></thead>
         <tbody>
-          <tr><td><span class="k k02">410</span> <strong>Desde plan de mantenimiento</strong></td><td>Seguimiento de hallazgos que vienen de una orden PM03 y se registraron como <strong>aviso N2</strong>.</td></tr>
-          <tr><td><span class="k k02">411</span> <strong>Mejora de línea</strong></td><td>Cambio físico o de programación con mejora permanente en operatividad, mantenibilidad o confiabilidad. Bajo el umbral de capitalización.</td></tr>
-          <tr><td><span class="k k02">412</span> <strong>Mejora de seguridad</strong></td><td>Cambio físico que hace la máquina más segura de operar y mantener.</td></tr>
-          <tr><td><span class="k k02">413</span> <strong>Mejora de ambiente</strong></td><td>Cambio físico que reduce el impacto ambiental de la máquina o mejora su higiene.</td></tr>
+          <tr><td data-l="Clave"><span class="k k02">410</span> <strong>Desde plan de mantenimiento</strong></td><td data-l="Qué cubre">Seguimiento de hallazgos que vienen de una orden PM03 y se registraron como <strong>aviso N2</strong>.</td></tr>
+          <tr><td data-l="Clave"><span class="k k02">411</span> <strong>Mejora de línea</strong></td><td data-l="Qué cubre">Cambio físico o de programación con mejora permanente en operatividad, mantenibilidad o confiabilidad. Bajo el umbral de capitalización.</td></tr>
+          <tr><td data-l="Clave"><span class="k k02">412</span> <strong>Mejora de seguridad</strong></td><td data-l="Qué cubre">Cambio físico que hace la máquina más segura de operar y mantener.</td></tr>
+          <tr><td data-l="Clave"><span class="k k02">413</span> <strong>Mejora de ambiente</strong></td><td data-l="Qué cubre">Cambio físico que reduce el impacto ambiental de la máquina o mejora su higiene.</td></tr>
         </tbody>
       </table>
     </div>
@@ -425,12 +478,12 @@
       <table>
         <thead><tr><th>Clave</th><th>Qué cubre</th></tr></thead>
         <tbody>
-          <tr><td><span class="k k03">500</span> <strong>Calibración</strong></td><td>Calibración de instrumentos según frecuencia establecida.</td></tr>
-          <tr><td><span class="k k03">501</span> <strong>Monitoreo de condición</strong></td><td>Vibración, termografía, análisis de aceite, ultrasonido, endoscopía, medición de aislamiento, inspección sensorial del técnico. Sus hallazgos se registran como aviso N2.</td></tr>
-          <tr><td><span class="k k03">502</span> <strong>Lubricación</strong></td><td>Todas las actividades de lubricación, con mapas de lubricación como instrucción técnica. Obligatorio incluir a <span class="mono">MEC_LUBR</span> como puesto responsable.</td></tr>
-          <tr><td><span class="k k03">503</span> <strong>Inspección legal</strong></td><td>Actividades prescritas por la legislación y los entes reguladores (GAO-KORE): vapor, electricidad, áreas combustibles, equipo presurizado y de elevación.</td></tr>
-          <tr><td><span class="k k03">504</span> <strong>Servicio planeado / overhaul</strong></td><td>Reemplazos y reparaciones periódicas bajo frecuencia establecida, incluso combinadas con inspección y lubricación.</td></tr>
-          <tr><td><span class="k k03">505</span> <strong>Inspección seguridad / ambiente</strong></td><td>Inspecciones críticas de electricidad, refrigeración, sistemas termales, aire comprimido, agua y válvulas de presión.</td></tr>
+          <tr><td data-l="Clave"><span class="k k03">500</span> <strong>Calibración</strong></td><td data-l="Qué cubre">Calibración de instrumentos según frecuencia establecida.</td></tr>
+          <tr><td data-l="Clave"><span class="k k03">501</span> <strong>Monitoreo de condición</strong></td><td data-l="Qué cubre">Vibración, termografía, análisis de aceite, ultrasonido, endoscopía, medición de aislamiento, inspección sensorial del técnico. Sus hallazgos se registran como aviso N2.</td></tr>
+          <tr><td data-l="Clave"><span class="k k03">502</span> <strong>Lubricación</strong></td><td data-l="Qué cubre">Todas las actividades de lubricación, con mapas de lubricación como instrucción técnica. Obligatorio incluir a <span class="mono">MEC_LUBR</span> como puesto responsable.</td></tr>
+          <tr><td data-l="Clave"><span class="k k03">503</span> <strong>Inspección legal</strong></td><td data-l="Qué cubre">Actividades prescritas por la legislación y los entes reguladores (GAO-KORE): vapor, electricidad, áreas combustibles, equipo presurizado y de elevación.</td></tr>
+          <tr><td data-l="Clave"><span class="k k03">504</span> <strong>Servicio planeado / overhaul</strong></td><td data-l="Qué cubre">Reemplazos y reparaciones periódicas bajo frecuencia establecida, incluso combinadas con inspección y lubricación.</td></tr>
+          <tr><td data-l="Clave"><span class="k k03">505</span> <strong>Inspección seguridad / ambiente</strong></td><td data-l="Qué cubre">Inspecciones críticas de electricidad, refrigeración, sistemas termales, aire comprimido, agua y válvulas de presión.</td></tr>
         </tbody>
       </table>
     </div>
@@ -492,9 +545,9 @@
       <table>
         <thead><tr><th>Actividad</th><th>¿Va en orden de trabajo?</th></tr></thead>
         <tbody>
-          <tr><td>Cualquier trabajo de mantenimiento en línea de producción o servicio industrial, interno o de terceros</td><td><strong class="si">Sí, siempre</strong></td></tr>
-          <tr><td>Análisis de avería, revisión de BOM, capacitaciones, reuniones, revisión de lubricantes, limpieza de taller</td><td><strong>Opcional</strong><small>No es obligatorio asignarlas; sirven para planificación.</small></td></tr>
-          <tr><td>Tiempo de reposo, stand-by, espera y breaks</td><td><strong class="si">Nunca</strong></td></tr>
+          <tr><td data-l="Actividad">Cualquier trabajo de mantenimiento en línea de producción o servicio industrial, interno o de terceros</td><td data-l="¿Va en orden de trabajo?"><strong class="si">Sí, siempre</strong></td></tr>
+          <tr><td data-l="Actividad">Análisis de avería, revisión de BOM, capacitaciones, reuniones, revisión de lubricantes, limpieza de taller</td><td data-l="¿Va en orden de trabajo?"><strong>Opcional</strong><small>No es obligatorio asignarlas; sirven para planificación.</small></td></tr>
+          <tr><td data-l="Actividad">Tiempo de reposo, stand-by, espera y breaks</td><td data-l="¿Va en orden de trabajo?"><strong class="si">Nunca</strong></td></tr>
         </tbody>
       </table>
     </div>
@@ -504,9 +557,9 @@
       <table>
         <thead><tr><th>Documento</th><th>Transacción</th><th>Quién la usa</th></tr></thead>
         <tbody>
-          <tr><td>Orden <strong>PM01</strong></td><td class="mono">IW31</td><td><span class="who">Técnico</span> <span class="who">Planificador</span></td></tr>
-          <tr><td>Orden <strong>PM02</strong></td><td class="mono">IW28</td><td><span class="who">Planificador</span></td></tr>
-          <tr><td>Orden <strong>PM03</strong></td><td class="mono">IP42 / IW38</td><td><span class="who">Planificador</span></td></tr>
+          <tr><td data-l="Documento">Orden <strong>PM01</strong></td><td data-l="Transacción" class="mono">IW31</td><td data-l="Quién la usa"><span class="who">Técnico</span> <span class="who">Planificador</span></td></tr>
+          <tr><td data-l="Documento">Orden <strong>PM02</strong></td><td data-l="Transacción" class="mono">IW28</td><td data-l="Quién la usa"><span class="who">Planificador</span></td></tr>
+          <tr><td data-l="Documento">Orden <strong>PM03</strong></td><td data-l="Transacción" class="mono">IP42 / IW38</td><td data-l="Quién la usa"><span class="who">Planificador</span></td></tr>
         </tbody>
       </table>
     </div>
@@ -516,15 +569,15 @@
       <table>
         <thead><tr><th>Si pasó esto…</th><th>Creas</th><th>Clave</th></tr></thead>
         <tbody>
-          <tr><td>Vi un síntoma de paso, sin plan de por medio</td><td>Aviso</td><td><span class="k k311">N1</span></td></tr>
-          <tr><td>Detecté el síntoma ejecutando una inspección o plan</td><td>Aviso</td><td><span class="k k03">N2</span></td></tr>
-          <tr><td>Intervine ahora y solo ajusté: no cambié pieza</td><td>OT PM01</td><td><span class="k k310">310</span></td></tr>
-          <tr><td>Cambié o reparé un componente y la línea siguió</td><td>OT PM01</td><td><span class="k k311">311</span></td></tr>
-          <tr><td>Cambié o reparé un componente y se perdió producción</td><td>OT PM01</td><td><span class="k k312">312</span></td></tr>
-          <tr><td>Hay que programar la reparación de un aviso N1</td><td>OT PM01</td><td><span class="k k313">313</span></td></tr>
-          <tr><td>Hay que programar el hallazgo de un aviso N2</td><td>OT PM02</td><td><span class="k k02">410</span></td></tr>
-          <tr><td>Es una mejora permanente de la máquina</td><td>OT PM02</td><td><span class="k k02">411 · 412 · 413</span></td></tr>
-          <tr><td>Es una actividad de frecuencia fija del plan</td><td>OT PM03</td><td><span class="k k03">500 – 505</span></td></tr>
+          <tr><td data-l="Si pasó esto…">Vi un síntoma de paso, sin plan de por medio</td><td data-l="Creas">Aviso</td><td data-l="Clave"><span class="k k311">N1</span></td></tr>
+          <tr><td data-l="Si pasó esto…">Detecté el síntoma ejecutando una inspección o plan</td><td data-l="Creas">Aviso</td><td data-l="Clave"><span class="k k03">N2</span></td></tr>
+          <tr><td data-l="Si pasó esto…">Intervine ahora y solo ajusté: no cambié pieza</td><td data-l="Creas">OT PM01</td><td data-l="Clave"><span class="k k310">310</span></td></tr>
+          <tr><td data-l="Si pasó esto…">Cambié o reparé un componente y la línea siguió</td><td data-l="Creas">OT PM01</td><td data-l="Clave"><span class="k k311">311</span></td></tr>
+          <tr><td data-l="Si pasó esto…">Cambié o reparé un componente y se perdió producción</td><td data-l="Creas">OT PM01</td><td data-l="Clave"><span class="k k312">312</span></td></tr>
+          <tr><td data-l="Si pasó esto…">Hay que programar la reparación de un aviso N1</td><td data-l="Creas">OT PM01</td><td data-l="Clave"><span class="k k313">313</span></td></tr>
+          <tr><td data-l="Si pasó esto…">Hay que programar el hallazgo de un aviso N2</td><td data-l="Creas">OT PM02</td><td data-l="Clave"><span class="k k02">410</span></td></tr>
+          <tr><td data-l="Si pasó esto…">Es una mejora permanente de la máquina</td><td data-l="Creas">OT PM02</td><td data-l="Clave"><span class="k k02">411 · 412 · 413</span></td></tr>
+          <tr><td data-l="Si pasó esto…">Es una actividad de frecuencia fija del plan</td><td data-l="Creas">OT PM03</td><td data-l="Clave"><span class="k k03">500 – 505</span></td></tr>
         </tbody>
       </table>
     </div>
