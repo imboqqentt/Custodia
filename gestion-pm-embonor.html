@@ -1,0 +1,826 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Avisos y Órdenes SAP-PM · Guía del técnico</title>
+<style>
+  :root{
+    --ground:#EAEDEF; --surface:#FFF; --surface-2:#F4F7F8;
+    --ink:#121A1F; --ink-2:#4C5A62; --ink-3:#76858D;
+    --line:#D4DBDF; --line-2:#B5C0C6;
+    --accent:#14415C; --accent-soft:#E3EDF3;
+    --c310:#8A6100; --c310-bg:#FAF0DC;
+    --c311:#15607F; --c311-bg:#E1EFF5;
+    --c312:#A8221C; --c312-bg:#FAE7E5;
+    --c313:#2C6A4A; --c313-bg:#E3F0E8;
+    --c02:#5C3D8A;  --c02-bg:#EEE8F7;
+    --c03:#0F6B6B;  --c03-bg:#DEF0EF;
+    --shadow:0 1px 2px rgba(18,26,31,.05),0 10px 26px -18px rgba(18,26,31,.35);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+    --ground:#0E1418; --surface:#161E23; --surface-2:#1C262C;
+    --ink:#E8EEF1; --ink-2:#A8B6BD; --ink-3:#7F8F97;
+    --line:#2A363D; --line-2:#3D4C55;
+    --accent:#7FBEE0; --accent-soft:#122F42;
+    --c310:#E2B160; --c310-bg:#382913;
+    --c311:#79C2E2; --c311-bg:#10303D;
+    --c312:#F1918A; --c312-bg:#3B1B19;
+    --c313:#83C7A2; --c313-bg:#16301F;
+    --c02:#B79CE0;  --c02-bg:#251C36;
+    --c03:#66C3C0;  --c03-bg:#0F2E2E;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px -20px rgba(0,0,0,.85);
+    color-scheme:dark;
+  }}
+  :root[data-theme="dark"]{
+    --ground:#0E1418; --surface:#161E23; --surface-2:#1C262C;
+    --ink:#E8EEF1; --ink-2:#A8B6BD; --ink-3:#7F8F97;
+    --line:#2A363D; --line-2:#3D4C55;
+    --accent:#7FBEE0; --accent-soft:#122F42;
+    --c310:#E2B160; --c310-bg:#382913;
+    --c311:#79C2E2; --c311-bg:#10303D;
+    --c312:#F1918A; --c312-bg:#3B1B19;
+    --c313:#83C7A2; --c313-bg:#16301F;
+    --c02:#B79CE0;  --c02-bg:#251C36;
+    --c03:#66C3C0;  --c03-bg:#0F2E2E;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 12px 30px -20px rgba(0,0,0,.85);
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--ground); color:var(--ink);
+    font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    font-size:16px; line-height:1.55;
+  }
+  .mono,code{font-family:ui-monospace,"Cascadia Mono",Consolas,"Roboto Mono",monospace}
+  h1,h2,h3,h4{margin:0; text-wrap:balance; letter-spacing:-.015em}
+  p,ul,ol{margin:0}
+  a{color:var(--accent)}
+  .wrap{max-width:1080px; margin:0 auto; padding:0 20px}
+  .col{max-width:72ch}
+
+  /* nav */
+  .bar{position:sticky; top:0; z-index:30; background:var(--ground); border-bottom:1px solid var(--line)}
+  .bar-in{display:flex; align-items:center; gap:18px; height:50px; overflow-x:auto; scrollbar-width:none}
+  .bar-in::-webkit-scrollbar{display:none}
+  .brand{font-weight:700; font-size:13px; letter-spacing:.06em; text-transform:uppercase; white-space:nowrap; display:flex; gap:8px; align-items:center}
+  .brand::before{content:""; width:8px; height:18px; background:var(--accent)}
+  .bar nav{display:flex; gap:16px}
+  .bar nav a{font-size:13px; color:var(--ink-2); text-decoration:none; white-space:nowrap; padding:3px 0; border-bottom:2px solid transparent}
+  .bar nav a:hover,.bar nav a:focus-visible{color:var(--ink); border-bottom-color:var(--accent)}
+  :focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+
+  /* hero */
+  .hero{padding:44px 0 34px}
+  .kicker{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); margin-bottom:14px}
+  h1{font-size:clamp(30px,5.2vw,46px); line-height:1.05; font-weight:700}
+  .lede{margin-top:16px; font-size:17px; color:var(--ink-2); max-width:64ch}
+  .src{margin-top:20px; font-size:12.5px; color:var(--ink-3); border-left:2px solid var(--line-2); padding-left:12px; max-width:70ch}
+
+  /* sections */
+  section{padding:40px 0; border-top:1px solid var(--line)}
+  .shead{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:6px}
+  .skey{font-size:12px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:600}
+  h2{font-size:clamp(23px,3.2vw,30px); font-weight:700}
+  .ssub{margin-top:10px; color:var(--ink-2); font-size:16px}
+  section>.wrap>*+*{margin-top:18px}
+  h3.sub{font-size:16.5px; font-weight:650; margin-top:30px}
+  h3.sub+*{margin-top:10px!important}
+
+  /* tables */
+  .tw{overflow-x:auto; border:1px solid var(--line); background:var(--surface); box-shadow:var(--shadow)}
+  table{border-collapse:collapse; width:100%; min-width:620px; font-size:14.5px}
+  th,td{text-align:left; padding:11px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+  thead th{font-size:11.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); font-weight:600; background:var(--surface-2); border-bottom:1px solid var(--line-2)}
+  tbody tr:last-child td{border-bottom:0}
+  td small{display:block; color:var(--ink-3); font-size:12.5px; line-height:1.4; margin-top:3px}
+  .ctr{text-align:center; font-weight:600}
+  .si{color:var(--c312)} .no{color:var(--ink-3)}
+
+  /* clave chips */
+  .k{display:inline-block; font-family:ui-monospace,Consolas,monospace; font-weight:700; font-size:13px; padding:3px 8px; border-radius:3px; border:1px solid transparent; white-space:nowrap}
+  .k310{color:var(--c310); background:var(--c310-bg); border-color:var(--c310)}
+  .k311{color:var(--c311); background:var(--c311-bg); border-color:var(--c311)}
+  .k312{color:var(--c312); background:var(--c312-bg); border-color:var(--c312)}
+  .k313{color:var(--c313); background:var(--c313-bg); border-color:var(--c313)}
+  .k02{color:var(--c02); background:var(--c02-bg); border-color:var(--c02)}
+  .k03{color:var(--c03); background:var(--c03-bg); border-color:var(--c03)}
+  .who{display:inline-block; font-size:11px; letter-spacing:.08em; text-transform:uppercase; padding:2px 7px; border:1px solid var(--line-2); color:var(--ink-2); border-radius:2px; white-space:nowrap}
+
+  /* decision tool */
+  .tool{border:1px solid var(--line-2); background:var(--surface); box-shadow:var(--shadow)}
+  .tool-head{display:flex; justify-content:space-between; align-items:center; gap:12px; padding:14px 18px; border-bottom:1px solid var(--line); background:var(--surface-2); flex-wrap:wrap}
+  .tool-head h3{font-size:15px; font-weight:650}
+  .tool-body{padding:20px 18px 22px}
+  .crumbs{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px; font-size:12px; color:var(--ink-3)}
+  .crumbs span{background:var(--surface-2); border:1px solid var(--line); padding:2px 8px; border-radius:2px}
+  .qtext{font-size:19px; font-weight:650; line-height:1.3}
+  .qhint{margin-top:8px; font-size:13.5px; color:var(--ink-3); max-width:62ch}
+  .opts{display:grid; gap:8px; margin-top:16px}
+  .opt{
+    text-align:left; font:inherit; font-size:15px; color:var(--ink); cursor:pointer;
+    background:var(--surface); border:1px solid var(--line-2); border-radius:3px;
+    padding:13px 16px; display:flex; gap:10px; align-items:baseline;
+  }
+  .opt:hover{border-color:var(--accent); background:var(--accent-soft)}
+  .opt b{color:var(--accent); font-family:ui-monospace,Consolas,monospace; font-size:12px}
+  .btn{font:inherit; font-size:13px; cursor:pointer; background:transparent; border:1px solid var(--line-2); color:var(--ink-2); padding:6px 12px; border-radius:3px}
+  .btn:hover{border-color:var(--accent); color:var(--accent)}
+  .res-head{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+  .res-title{font-size:21px; font-weight:700}
+  .res-doc{font-size:13px; color:var(--ink-3); margin-top:4px}
+  .res-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); margin-top:16px}
+  .res-grid > div{background:var(--surface); padding:14px 16px}
+  .res-grid h4{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); margin-bottom:7px; font-weight:600}
+  .res-grid ul{padding-left:16px; font-size:14px; color:var(--ink-2)}
+  .res-grid li+li{margin-top:4px}
+  .res-grid p{font-size:14px; color:var(--ink-2)}
+
+  /* callouts */
+  .call{border:1px solid var(--line); border-left-width:3px; border-left-color:var(--accent); background:var(--surface); padding:16px 18px}
+  .call.warn{border-left-color:var(--c312); background:var(--c312-bg)}
+  .call h4{font-size:14.5px; font-weight:650; margin-bottom:6px}
+  .call p,.call li{font-size:14.5px; color:var(--ink-2)}
+  .call.warn p,.call.warn li{color:var(--ink)}
+  .call ul{padding-left:18px; margin-top:6px}
+  .call li+li{margin-top:3px}
+  .call p+p{margin-top:7px}
+
+  /* checklist */
+  .chk{display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line)}
+  .chk > div{background:var(--surface); padding:14px 16px 15px 40px; position:relative; font-size:14.5px; color:var(--ink-2)}
+  .chk > div::before{content:"□"; position:absolute; left:15px; top:12px; font-size:16px; color:var(--accent)}
+  .chk b{color:var(--ink); font-weight:650; display:block; font-size:14.5px}
+
+  /* example box */
+  .ex{border:1px solid var(--line); background:var(--surface-2); padding:14px 16px; font-size:14px; color:var(--ink-2)}
+  .ex .lbl{font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3); font-weight:600; margin-bottom:6px}
+  .ex .txt{font-family:ui-monospace,Consolas,monospace; font-size:13.5px; color:var(--ink); line-height:1.5}
+
+  figure{margin:0; border:1px solid var(--line); background:var(--surface); box-shadow:var(--shadow)}
+  .figbox{overflow-x:auto; padding:18px 18px 4px}
+  figure svg{display:block; width:100%; min-width:560px; height:auto; color:var(--ink)}
+  figcaption{border-top:1px solid var(--line); background:var(--surface-2); padding:11px 16px; font-size:12.5px; color:var(--ink-3)}
+
+  footer{border-top:1px solid var(--line); padding:26px 0 50px; font-size:12.5px; color:var(--ink-3)}
+  footer p+p{margin-top:6px}
+
+  @media (max-width:640px){
+    .bar nav{gap:13px}
+    .hero{padding:32px 0 26px}
+    table{min-width:520px}
+  }
+  @media print{
+    .bar,.tool,.noprint{display:none!important}
+    body{background:#fff; font-size:11pt}
+    section{page-break-inside:avoid; padding:18px 0}
+    .tw,figure{box-shadow:none}
+  }
+</style>
+</head>
+<body>
+
+<header class="bar">
+  <div class="wrap bar-in">
+    <span class="brand">SAP-PM · Embonor Talca</span>
+    <nav>
+      <a href="#decidir">Qué creo</a>
+      <a href="#conceptos">Conceptos</a>
+      <a href="#avisos">Avisos N1/N2</a>
+      <a href="#pm01">PM01</a>
+      <a href="#pm02">PM02</a>
+      <a href="#pm03">PM03</a>
+      <a href="#calidad">Calidad</a>
+      <a href="#resumen">Resumen</a>
+    </nav>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <p class="kicker">Mantenimiento · Coca-Cola Embonor Talca</p>
+    <h1>Aviso u orden:<br>qué creo, con qué clave y quién lo crea.</h1>
+    <p class="lede">El aviso registra el <b>síntoma</b>. La orden registra la <b>acción</b>. Elegir mal la clave desordena el historial de fallas, el costo y las horas del equipo. Esta guía responde en tres preguntas.</p>
+    <p class="src">Basada en el <b>Manual de Administración de Órdenes de Trabajo de Mantenimiento</b> (Estrategia de Mantenimiento, 17/06/2026) y en la capacitación <b>SAP-PM · Metodología</b> de Embonor Talca. Si algo de tu operación difiere del manual, manda el manual.</p>
+  </div>
+</div>
+
+<section id="decidir">
+  <div class="wrap">
+    <div class="shead"><span class="skey">Decide</span></div>
+    <h2>¿Qué tengo que crear?</h2>
+    <p class="ssub col">Responde y llegas a la clave correcta con sus criterios. Si la pantalla no te deja usarlo, la misma lógica está dibujada más abajo y en las tablas de cada tipo de orden.</p>
+
+    <div class="tool" id="tool">
+      <div class="tool-head">
+        <h3>Selector de clave</h3>
+        <button class="btn" id="reset" type="button">Empezar de nuevo</button>
+      </div>
+      <div class="tool-body" id="toolBody"></div>
+    </div>
+
+    <figure>
+      <div class="figbox">
+        <svg viewBox="0 0 900 420" role="img" aria-label="Árbol de decisión: si el objeto requiere intervención inmediata y no hay cambio de componente es clave 310; con cambio de componente y sin detención de línea es 311; con detención de línea es 312; si no requiere intervención inmediata y viene de un aviso N1 es 313, y si viene de un aviso N2 es PM02 clave 410.">
+          <defs>
+            <marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+              <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+            </marker>
+          </defs>
+          <g fill="none" stroke="currentColor" stroke-opacity=".55">
+            <rect x="10" y="180" width="150" height="56" rx="3"/>
+            <rect x="250" y="90" width="150" height="56" rx="3"/>
+            <rect x="250" y="280" width="150" height="56" rx="3"/>
+            <rect x="490" y="20" width="150" height="52" rx="3"/>
+            <rect x="490" y="110" width="150" height="52" rx="3"/>
+            <rect x="490" y="255" width="150" height="52" rx="3"/>
+            <rect x="490" y="330" width="150" height="52" rx="3"/>
+          </g>
+          <g font-size="12.5" fill="currentColor" text-anchor="middle">
+            <text x="85" y="203">El objeto se vuelve</text>
+            <text x="85" y="219">o se está volviendo</text>
+            <text x="85" y="235" font-size="11" fill-opacity=".6">incapaz</text>
+
+            <text x="325" y="113">¿Cambio o reparación</text>
+            <text x="325" y="129">de componente?</text>
+            <text x="325" y="145" font-size="11" fill-opacity=".6">intervención inmediata</text>
+
+            <text x="325" y="303">¿De qué aviso viene?</text>
+            <text x="325" y="319" font-size="11" fill-opacity=".6">sin intervención inmediata</text>
+
+            <text x="565" y="41" font-weight="700">310 · AJUSTES</text>
+            <text x="565" y="58" font-size="11" fill-opacity=".65">no se cambia componente</text>
+
+            <text x="565" y="131" font-weight="700">311 / 312</text>
+            <text x="565" y="148" font-size="11" fill-opacity=".65">¿detuvo la línea? no / sí</text>
+
+            <text x="565" y="276" font-weight="700">313 · CORRECTIVO PROG.</text>
+            <text x="565" y="293" font-size="11" fill-opacity=".65">desde aviso N1</text>
+
+            <text x="565" y="351" font-weight="700">PM02 · 410</text>
+            <text x="565" y="368" font-size="11" fill-opacity=".65">desde aviso N2</text>
+          </g>
+          <g fill="none" stroke="currentColor" stroke-opacity=".7" marker-end="url(#a1)">
+            <path d="M160,198 H205 V118 H244"/>
+            <path d="M160,218 H205 V308 H244"/>
+            <path d="M400,110 H445 V46 H484"/>
+            <path d="M400,126 H445 V136 H484"/>
+            <path d="M400,298 H445 V281 H484"/>
+            <path d="M400,318 H445 V356 H484"/>
+          </g>
+          <g font-size="11" fill="currentColor" fill-opacity=".65">
+            <text x="166" y="150" >requiere</text>
+            <text x="166" y="163">intervención</text>
+            <text x="166" y="176">inmediata</text>
+            <text x="166" y="262">no requiere</text>
+            <text x="166" y="275">intervención</text>
+            <text x="166" y="288">inmediata</text>
+            <text x="406" y="72">no</text>
+            <text x="406" y="164">sí</text>
+            <text x="406" y="252">N1</text>
+            <text x="406" y="342">N2</text>
+          </g>
+        </svg>
+      </div>
+      <figcaption>La misma lógica del selector: primero la urgencia, después el componente, al final el efecto en la línea.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="conceptos">
+  <div class="wrap">
+    <div class="shead"><span class="skey">Conceptos</span></div>
+    <h2>Falla, avería y ajuste no son la misma cosa</h2>
+    <p class="ssub col">Casi toda la confusión con las claves nace de aquí. La diferencia está en si el componente <b>todavía cumple su función</b> y en si <b>se cambió o no</b>.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Concepto</th><th>Definición del manual</th><th>Qué corresponde hacer</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>Falla</strong><small>síntoma</small></td>
+            <td>El objeto técnico o componente <strong>se está volviendo incapaz</strong> de realizar su función. Es posible detectar el síntoma antes de que ocurra la avería.</td>
+            <td>Levantar un <strong>aviso</strong> (N1 o N2) para planificar y programar dentro de corto plazo.</td>
+          </tr>
+          <tr>
+            <td><strong>Avería</strong><small>pérdida de función</small></td>
+            <td>El objeto técnico o componente <strong>no puede realizar su función</strong>. Se debe reparar o reemplazar el componente de forma correctiva inmediata.</td>
+            <td>Orden <strong>PM01</strong> con clave <span class="k k311">311</span> o <span class="k k312">312</span> según si detuvo la línea.</td>
+          </tr>
+          <tr>
+            <td><strong>Ajuste</strong><small>sin cambio de pieza</small></td>
+            <td>El objeto se vuelve incapaz y requiere intervención inmediata, pero se resuelve con ajuste de parámetros o mecánico. <strong>No existe cambio ni reparación de componente.</strong></td>
+            <td>Orden <strong>PM01</strong> con clave <span class="k k310">310</span>. Puede o no detener la línea.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="call">
+      <h4>Dos definiciones que hay que tener claras</h4>
+      <p><b>Incapaz:</b> la pieza no puede realizar su función dentro del estándar esperado de desempeño — velocidad, frecuencia, temperatura, presión. También se llama <i>pérdida completa de función</i>. Una correa que no está rota pero patina y no transmite la velocidad requerida <b>es incapaz</b>.</p>
+      <p><b>Intervención inmediata:</b> la restauración tiene que ocurrir ahora para prevenir o minimizar pérdida de producción, pérdida completa de función, problemas de calidad o problemas de seguridad.</p>
+    </div>
+
+    <div class="call">
+      <h4>Síntomas que se registran como aviso</h4>
+      <p>Vibración · temperatura · desbalanceo · fuga · ruido · olor · zumbido. La falla se captura <b>independiente de su origen</b>, sea operacional o de mantenimiento: no se esconde.</p>
+    </div>
+  </div>
+</section>
+
+<section id="avisos">
+  <div class="wrap">
+    <div class="shead"><span class="skey">Avisos</span></div>
+    <h2>Solo hay dos tipos de aviso: N1 y N2</h2>
+    <p class="ssub col">El aviso es el documento donde se <b>registra el síntoma de falla</b> de un objeto técnico o se solicita una reparación. Lo que los diferencia no es la gravedad: es <b>de dónde salió el hallazgo</b>.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Aviso</th><th>Cuándo se usa</th><th>Ejemplos del manual</th><th>Deriva normalmente en</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="k k311">N1</span><small>fortuito</small></td>
+            <td>Síntoma de falla registrado <strong>de manera fortuita</strong>, no proveniente de ningún plan de mantenimiento.</td>
+            <td>
+              Cadena de transporte con tirones, vista al pasar por sala de embotellado tras otra reparación.
+              <small>Pinzas de traspaso en mal estado detectadas durante un cambio de válvula. Filtros de aspiración saturados vistos al ajustar el código láser. Filtración de piping camino al servicio higiénico.</small>
+            </td>
+            <td>Orden <strong>PM01</strong> clave <span class="k k313">313</span> programada antes de que genere detención.</td>
+          </tr>
+          <tr>
+            <td><span class="k k03">N2</span><small>desde plan</small></td>
+            <td>Síntoma de falla registrado <strong>mediante una inspección proveniente de un plan</strong> de mantenimiento o inspección predictiva.</td>
+            <td>
+              En la inspección de transporte de sala de embotellado (orden PM03) se detectan cadenas con tirones.
+              <small>En el plan de inspección de pinzas de traspaso se identifican pinzas en mal estado.</small>
+            </td>
+            <td>Orden <strong>PM02</strong> clave <span class="k k02">410</span>, seguimiento desde el plan.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="call">
+      <h4>El mismo hallazgo, distinto aviso</h4>
+      <p>"Cadena de transporte con tirones" es N1 si la viste de paso y N2 si la encontraste ejecutando la inspección. Ese detalle es lo que después separa un <span class="k k313">313</span> de un <span class="k k02">410</span>, y lo que permite medir si los planes de inspección están detectando o no.</p>
+    </div>
+
+    <h3 class="sub">Calidad del aviso: lo que no puede faltar</h3>
+    <div class="chk">
+      <div><b>Tipo de aviso</b>Identificar si es N1 o N2.</div>
+      <div><b>Descripción breve del síntoma</b>Texto corto y concreto de lo observado.</div>
+      <div><b>Ubicación técnica</b>Lo más detallada posible.</div>
+      <div><b>Síntoma detallado</b>Material, medidas, espesor, N° de parte: todo lo que facilite resolverlo.</div>
+      <div><b>Parte del objeto, síntoma y causa</b>Los tres campos de catálogo del aviso.</div>
+      <div><b>Datos del autor</b>Quién reporta y dónde ubicarlo.</div>
+      <div><b>Prioridad del aviso</b>Definida según el impacto real.</div>
+    </div>
+  </div>
+</section>
+
+<section id="pm01">
+  <div class="wrap">
+    <div class="shead"><span class="skey">PM01</span><span class="who">Averías · correctivo</span></div>
+    <h2>Las cuatro claves de la orden correctiva</h2>
+    <p class="ssub col">Las fallas técnicas son la principal pérdida de mantenimiento y la meta es minimizarlas: por eso <b>se capturan siempre, sin esconderlas</b>, con independencia de si el origen fue operacional o de mantenimiento. Tres claves las crea el técnico; la cuarta, el planificador.</p>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>Clave</th><th>¿Cambio o reparación de componente?</th><th>¿Intervención inmediata?</th><th>¿Detiene la línea?</th><th>Quién la crea</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="k k310">310</span> <strong>Ajustes</strong><small>parámetros o mecánicos, cambios de formato</small></td>
+            <td class="ctr no">NO</td><td class="ctr si">SÍ</td><td class="ctr">Puede o no</td>
+            <td><span class="who">Técnico</span></td>
+          </tr>
+          <tr>
+            <td><span class="k k311">311</span> <strong>Avería sin detención</strong><small>cambio o reparación de componente</small></td>
+            <td class="ctr si">SÍ</td><td class="ctr si">SÍ</td><td class="ctr no">NO</td>
+            <td><span class="who">Técnico</span></td>
+          </tr>
+          <tr>
+            <td><span class="k k312">312</span> <strong>Avería con detención</strong><small>hay pérdida de producción</small></td>
+            <td class="ctr si">SÍ</td><td class="ctr si">SÍ</td><td class="ctr si">SÍ</td>
+            <td><span class="who">Técnico</span></td>
+          </tr>
+          <tr>
+            <td><span class="k k313">313</span> <strong>Correctivo programado</strong><small>proviene de un aviso N1</small></td>
+            <td class="ctr si">SÍ</td><td class="ctr no">NO</td><td class="ctr no">NO</td>
+            <td><span class="who">Planificador</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">Cómo se ve cada una en planta</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Clave</th><th>Ejemplos reales del manual y la capacitación</th></tr></thead>
+        <tbody>
+          <tr><td><span class="k k310">310</span></td><td>Ajuste de código por código ilegible en botella · ajuste de parámetros de sopladora según formato · ajuste del conjunto de etiquetado · ajuste de estrella de transferencia · apoyo operacional en cambio de formato.</td></tr>
+          <tr><td><span class="k k311">311</span></td><td>Caja golpea un sensor en la desencajonadora y se reemplaza mientras los transportes de acumulación suplen la demanda: la llenadora no se detiene · falla de variador de frecuencia en paletizadora, se normaliza y se reinicia el equipo · reparación de manguera de refrigeración en rampa de cuello de preforma durante restricción eléctrica.</td></tr>
+          <tr><td><span class="k k312">312</span></td><td>Falla una válvula de llenado y hay que reemplazarla: la llenadora se detiene · ingreso de preformas con cuello torcido rompe lámparas de horno de la sopladora, se cambian 10 lámparas y se pierde producción.</td></tr>
+          <tr><td><span class="k k313">313</span></td><td>Aviso N1 de cadenas de transporte con tirones: se programa el cambio <b>antes</b> de que genere detención de línea.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="call">
+      <h4>Requisito obligatorio de toda PM01: identificar el componente</h4>
+      <p>Hay que indicar el componente o componentes en formato <b>5W+1H</b>, y hacerlo también sobre cualquier repuesto descartado que se devuelve a la bodega técnica. <b>La identificación se hace incluso si no se reemplazó ninguna pieza.</b> En la orden va el FLOC y el número de material de lo que se cambió.</p>
+    </div>
+
+    <h3 class="sub">Calidad de la OT PM01</h3>
+    <div class="chk">
+      <div><b>Clave correcta</b>310, 311, 312 o 313 según los criterios de la tabla.</div>
+      <div><b>Texto breve con verbo</b>La descripción es una acción: "se ajusta", "se reemplaza", "se repara".</div>
+      <div><b>Ubicación técnica completa</b>Hasta el nivel más detallado posible.</div>
+      <div><b>Puesto responsable</b>Señalado en la orden.</div>
+      <div><b>Inicio y término de avería</b>Los tiempos reales de la falla.</div>
+      <div><b>¿Detuvo o no la producción?</b>Identificado explícitamente.</div>
+      <div><b>Actividad descrita en el aviso asociado</b>Con el mayor detalle posible.</div>
+    </div>
+
+    <div class="ex" style="margin-top:14px">
+      <div class="lbl">Así se escribe el detalle — ejemplos de la capacitación</div>
+      <p class="txt">"Se retiran protecciones y se ajusta tensor de servomotor ya que no engranaba con respecto a piñón de arrastre, quedando operativo."</p>
+      <p class="txt" style="margin-top:10px">"Debido al ingreso de preformas en mal estado (cuello torcido) se rompen lámparas de horno 6, 7, 10 y 11. En total se cambian 10 lámparas, se utiliza stock disponible en taller. Máquina queda operativa."</p>
+    </div>
+  </div>
+</section>
+
+<section id="pm02">
+  <div class="wrap">
+    <div class="shead"><span class="skey">PM02</span><span class="who">Preventivo · planificador</span></div>
+    <h2>Trabajo planificado y mejoras permanentes</h2>
+    <p class="ssub col">Las PM02 se crean manualmente desde un aviso, están planificadas y programadas con anticipación, y deberían estar integradas en la rutina semanal o mensual de mantenimiento.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Clave</th><th>Qué cubre</th><th>Ejemplos</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><span class="k k02">410</span> <strong>Desde plan de mantenimiento</strong></td>
+            <td>Seguimiento de hallazgos que vienen de órdenes PM03 —inspección o lubricación— registrados como <strong>aviso N2</strong>, sobre objetos técnicos prescritos para ser inspeccionados.</td>
+            <td>Cadenas con tirones detectadas en la inspección de transporte: se programa antes de que generen detención.</td>
+          </tr>
+          <tr>
+            <td><span class="k k02">411</span> <strong>Mejora de línea</strong></td>
+            <td>Cambio físico o de programación que da una mejora permanente en <strong>operatividad</strong> (recambios, limpieza y CIP, arranque y cierre), <strong>mantenibilidad</strong> (inspección y reemplazo de piezas, averías, lubricación) o <strong>confiabilidad</strong>.</td>
+            <td>Instalación de lubricador automático · tensor de cadena automático · cambio de tipo de rodamiento para evitar contaminación · guía neumática para mejorar posicionamiento · cambio de programa PLC para reducir desechos.</td>
+          </tr>
+          <tr>
+            <td><span class="k k02">412</span> <strong>Mejora de seguridad</strong></td>
+            <td>Cambio físico que hace la máquina <strong>más segura</strong> de operar y mantener.</td>
+            <td>Protección que impide el acceso durante la operación · válvula eléctrica de corte de aire para evitar lesiones en la limpieza · bloqueo de interruptor · barrera de luz que detiene la máquina al ingresar personal.</td>
+          </tr>
+          <tr>
+            <td><span class="k k02">413</span> <strong>Mejora de ambiente</strong></td>
+            <td>Cambio físico que <strong>reduce el impacto ambiental</strong> de la máquina o mejora su higiene.</td>
+            <td>Sensor de control de calidad de agua · sensores de medición de consumo eléctrico · mejora del sistema de corte de la máquina derramadora.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="call warn">
+      <h4>El error más masivo: usar 411, 412 y 413 para restauraciones</h4>
+      <p>Las actividades de restauración y reparación <b>no son mejoras</b>. Estas se clasifican mal como mejora todo el tiempo:</p>
+      <ul>
+        <li>Pintura, limpieza de óxido, reemplazo de cañerías, reemplazo de filtros.</li>
+        <li>Normalización de condiciones básicas.</li>
+        <li>Renovación o reparación grande de máquinas.</li>
+        <li>Reparación de sistemas de ventilación y aguas servidas.</li>
+        <li>Reparación de dispositivos o sensores de medición.</li>
+      </ul>
+      <p>Además, los repuestos de mejora deben planificarse con bastante anticipación. Si se sacan directo de la bodega técnica sin planificación, hay <b>alto riesgo de dejar sin repuestos al mantenimiento regular</b>.</p>
+    </div>
+
+    <div class="call">
+      <h4>Mejores prácticas PM02</h4>
+      <p>Crear la orden <b>al menos una semana antes</b> de su ejecución, y con información técnica en formato <b>5W+1H</b>.</p>
+    </div>
+  </div>
+</section>
+
+<section id="pm03">
+  <div class="wrap">
+    <div class="shead"><span class="skey">PM03</span><span class="who">Predictivo · planificador</span></div>
+    <h2>Actividades con frecuencia fija</h2>
+    <p class="ssub col">Se usan para todas las actividades que se ejecutan a intervalos fijos —mensual, trimestral, por horas de funcionamiento— <b>independientemente de la condición</b> del componente. Se recomienda programar los planes solo de forma automática.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Clave</th><th>Qué cubre</th><th>Ejemplos</th></tr></thead>
+        <tbody>
+          <tr><td><span class="k k03">500</span> <strong>Calibración</strong></td><td>Actividades de calibración de instrumentos según la frecuencia establecida; críticas en proceso alimentario.</td><td>Conductivímetro de lavadoras · flujómetro de mixer, de filtro de carbón y de equipo de ósmosis · horno y manómetro patrón.</td></tr>
+          <tr><td><span class="k k03">501</span> <strong>Monitoreo de condición</strong></td><td>Mide la condición del equipo y sus cambios para detectar el deterioro lo antes posible.</td><td>Análisis de vibración · termografía · análisis de aceite o líquido · ultrasonido · endoscopía · medición de aislamiento · líquidos penetrantes · análisis de motor · inspección sensorial del técnico.</td></tr>
+          <tr><td><span class="k k03">502</span> <strong>Lubricación</strong></td><td>Todas las actividades de lubricación, con mapas de lubricación como instrucción técnica.</td><td>Cambio de aceite de reductor de compresores · lubricación de descansos de línea de transporte · levas y patines de decapsuladora.</td></tr>
+          <tr><td><span class="k k03">503</span> <strong>Inspección legal</strong></td><td>Actividades prescritas por la legislación local y los entes reguladores (GAO-KORE): vapor, energía eléctrica, áreas combustibles, equipo presurizado y de elevación.</td><td>Mantenimiento de subestaciones eléctricas · inspección y mantenimiento de filtros UV · inspección del sistema de seguridad de caldera.</td></tr>
+          <tr><td><span class="k k03">504</span> <strong>Servicio planeado / overhaul</strong></td><td>Reemplazos y reparaciones periódicas bajo frecuencia establecida, incluso combinadas con inspección y lubricación.</td><td>Mantenimiento anual de llenadora, decapsuladora, transporte y tobera.</td></tr>
+          <tr><td><span class="k k03">505</span> <strong>Inspección seguridad / ambiente</strong></td><td>Inspecciones críticas para asegurar operación segura y sin impacto ambiental: electricidad, refrigeración, sistemas termales, aire comprimido, agua, válvulas de presión.</td><td>Inspección de cámara de frío y de sensores de seguridad · mantenimiento de plataformas de trabajo y bombas de aguas lluvias.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="call">
+      <h4>Dos detalles que se pasan por alto</h4>
+      <p>Toda actividad de lubricación bajo <span class="k k03">502</span> debe incluir al mecánico lubricador <span class="mono">MEC_LUBR</span> como puesto responsable.</p>
+      <p>El <b>manual</b> numera estas claves de <b>500 a 505</b> y la <b>presentación de capacitación</b> las muestra de <b>510 a 515</b>, en el mismo orden. Confirma con el planificador cuál está activa en el sistema antes de crear la orden.</p>
+    </div>
+
+    <figure>
+      <div class="figbox">
+        <svg viewBox="0 0 760 300" role="img" aria-label="Curva P-F: el daño comienza en el punto D, la falla se puede detectar desde el punto P mediante monitoreo de condición, y el punto F es la falla funcional o avería. El intervalo entre P y F es el tiempo disponible para planificar la restauración.">
+          <g stroke="currentColor" stroke-opacity=".35" fill="none">
+            <line x1="70" y1="30" x2="70" y2="240"/>
+            <line x1="70" y1="240" x2="720" y2="240"/>
+          </g>
+          <path d="M70,60 C 250,62 330,75 420,120 C 480,152 520,200 560,235" fill="none" stroke="currentColor" stroke-width="2"/>
+          <g stroke="currentColor" stroke-opacity=".3" stroke-dasharray="4 4">
+            <line x1="330" y1="76" x2="330" y2="240"/>
+            <line x1="420" y1="120" x2="420" y2="240"/>
+            <line x1="560" y1="235" x2="560" y2="240"/>
+          </g>
+          <g fill="currentColor">
+            <circle cx="330" cy="76" r="4"/><circle cx="420" cy="120" r="4"/><circle cx="560" cy="235" r="4"/>
+          </g>
+          <g font-size="12" fill="currentColor">
+            <text x="318" y="64" font-weight="700">D</text>
+            <text x="252" y="47" font-size="11" fill-opacity=".7">comienza el daño</text>
+            <text x="412" y="108" font-weight="700">P</text>
+            <text x="436" y="104" font-size="11" fill-opacity=".7">es posible detectar la falla</text>
+            <text x="552" y="223" font-weight="700">F</text>
+            <text x="576" y="228" font-size="11" fill-opacity=".7">falla funcional / avería</text>
+            <text x="14" y="140" font-size="11" fill-opacity=".7">condición</text>
+            <text x="14" y="154" font-size="11" fill-opacity=".7">del compo-</text>
+            <text x="14" y="168" font-size="11" fill-opacity=".7">nente</text>
+            <text x="640" y="262" font-size="11" fill-opacity=".7">tiempo en operación</text>
+          </g>
+          <g stroke="currentColor" stroke-opacity=".6" fill="none">
+            <path d="M420,262 H560"/>
+            <path d="M420,257 V267"/><path d="M560,257 V267"/>
+          </g>
+          <text x="490" y="282" font-size="11" fill="currentColor" fill-opacity=".8" text-anchor="middle">intervalo P–F: aquí se planifica y se restaura</text>
+        </svg>
+      </div>
+      <figcaption>El objetivo del monitoreo de condición (clave 501) es detectar el deterioro lo más cerca posible de donde comenzó, para restaurar antes de la avería y optimizar la cantidad de inspecciones.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="calidad">
+  <div class="wrap">
+    <div class="shead"><span class="skey">Reglas</span></div>
+    <h2>Lo que sí y lo que no se carga a una orden</h2>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Actividad</th><th>¿Va en orden de trabajo?</th></tr></thead>
+        <tbody>
+          <tr><td>Cualquier trabajo de mantenimiento en línea de producción o servicio industrial, interno o de terceros</td><td><strong class="si">Sí, siempre</strong><small>Es la regla base de la estrategia de mantenimiento.</small></td></tr>
+          <tr><td>Análisis de avería, revisión de BOM, capacitaciones técnicas, reuniones, revisión de lubricantes, limpieza de taller</td><td><strong>Opcional</strong><small>No es obligatorio asignarlas. La fábrica puede usarlas con fines de planificación.</small></td></tr>
+          <tr><td>Tiempo de reposo, stand-by, espera y breaks</td><td><strong class="si">Nunca</strong><small>No debe asignarse a ninguna orden de trabajo.</small></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3 class="sub">Transacciones que indica la capacitación</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Documento</th><th>Transacción</th><th>Quién la usa</th></tr></thead>
+        <tbody>
+          <tr><td>Orden de mantenimiento <strong>PM01</strong></td><td class="mono">IW31</td><td><span class="who">Técnico</span> <span class="who">Planificador</span></td></tr>
+          <tr><td>Orden de mantenimiento <strong>PM02</strong></td><td class="mono">IW28</td><td><span class="who">Planificador</span></td></tr>
+          <tr><td>Orden de mantenimiento <strong>PM03</strong></td><td class="mono">IP42 / IW38</td><td><span class="who">Planificador</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="resumen">
+  <div class="wrap">
+    <div class="shead"><span class="skey">Resumen</span></div>
+    <h2>Para imprimir y dejar en el taller</h2>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Si pasó esto…</th><th>Creas</th><th>Clave</th></tr></thead>
+        <tbody>
+          <tr><td>Vi un síntoma de paso, sin plan de por medio</td><td>Aviso</td><td><span class="k k311">N1</span></td></tr>
+          <tr><td>Detecté el síntoma ejecutando una inspección o plan</td><td>Aviso</td><td><span class="k k03">N2</span></td></tr>
+          <tr><td>Intervine ahora y solo ajusté: no cambié pieza</td><td>OT PM01</td><td><span class="k k310">310</span></td></tr>
+          <tr><td>Cambié o reparé un componente y la línea siguió corriendo</td><td>OT PM01</td><td><span class="k k311">311</span></td></tr>
+          <tr><td>Cambié o reparé un componente y se perdió producción</td><td>OT PM01</td><td><span class="k k312">312</span></td></tr>
+          <tr><td>Hay que programar la reparación de un aviso N1, sin urgencia</td><td>OT PM01</td><td><span class="k k313">313</span></td></tr>
+          <tr><td>Hay que programar el hallazgo de un aviso N2</td><td>OT PM02</td><td><span class="k k02">410</span></td></tr>
+          <tr><td>Es una mejora permanente de línea, seguridad o ambiente</td><td>OT PM02</td><td><span class="k k02">411 · 412 · 413</span></td></tr>
+          <tr><td>Es una actividad de frecuencia fija del plan</td><td>OT PM03</td><td><span class="k k03">500 – 505</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="call">
+      <h4>Las tres preguntas, en orden</h4>
+      <p><b>1.</b> ¿Requiere intervención inmediata? &nbsp;·&nbsp; <b>2.</b> ¿Cambié o reparé un componente? &nbsp;·&nbsp; <b>3.</b> ¿Se detuvo la línea?</p>
+      <p>Con esas tres respuestas sale la clave correcta en todos los casos correctivos. Si no requiere intervención inmediata, la pregunta que decide es de qué aviso viene: N1 o N2.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p>Guía de apoyo para el departamento de Mantenimiento · Coca-Cola Embonor Talca. Resume el Manual de Administración de Órdenes de Trabajo de Mantenimiento (17/06/2026) y la capacitación SAP-PM de metodología. Ante cualquier diferencia, prevalece el manual vigente.</p>
+    <p>Archivo autónomo: funciona sin conexión a internet. Se puede imprimir directamente desde el navegador.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var R = {
+    n1:{code:"Aviso N1", cls:"k311", title:"Aviso de avería N1", doc:"Aviso de mantenimiento",
+      who:"Quien detecta el síntoma",
+      req:["Identificar el tipo de aviso (N1)","Descripción breve del síntoma","Ubicación técnica lo más detallada posible","Síntoma detallado: material, medidas, espesor, N° de parte","Parte del objeto, síntoma de avería y causa","Datos del autor","Prioridad del aviso"],
+      ex:"De camino a otra tarea ves cadenas de transporte con tirones en sala de embotellado y levantas el aviso con su ubicación técnica.",
+      next:"Si hay que programar la reparación, el planificador crea una PM01 clave 313."},
+    n2:{code:"Aviso N2", cls:"k03", title:"Aviso de avería N2", doc:"Aviso de mantenimiento",
+      who:"Quien ejecuta la inspección o el plan",
+      req:["Identificar el tipo de aviso (N2)","Descripción breve del síntoma","Ubicación técnica lo más detallada posible","Síntoma detallado: material, medidas, espesor, N° de parte","Parte del objeto, síntoma de avería y causa","Datos del autor","Prioridad del aviso"],
+      ex:"Ejecutando la inspección de transporte de sala de embotellado (orden PM03) detectas cadenas con tirones.",
+      next:"El planificador programa la actividad como PM02 clave 410."},
+    "310":{code:"310", cls:"k310", title:"Ajustes", doc:"Orden PM01 · correctivo",
+      who:"Técnico",
+      req:["No existe cambio ni reparación de componente","El objeto se vuelve incapaz y requiere intervención inmediata","Puede o no detener la línea","Puede ser de origen operacional o de mantenimiento","Identificar si hubo o no detención de línea","Describir la actividad en el aviso asociado"],
+      ex:"Ajuste de código por código ilegible en botella · ajuste de parámetros de sopladora según formato · ajuste del conjunto de etiquetado.",
+      next:"Texto breve con verbo, ubicación técnica, puesto responsable e inicio y término de la avería."},
+    "311":{code:"311", cls:"k311", title:"Avería sin detención de línea", doc:"Orden PM01 · correctivo",
+      who:"Técnico",
+      req:["Sí existe cambio o reparación de componente","El objeto se vuelve incapaz y requiere intervención inmediata","NO causa pérdida de producción","Registrar el tiempo de la avería","El feedback técnico debe indicar que no causó pérdida de producción"],
+      ex:"Una caja golpea un sensor de la desencajonadora: se reemplaza mientras los transportes de acumulación suplen la demanda y la llenadora no se detiene.",
+      next:"Identificar componentes en formato 5W+1H, incluso sobre el repuesto descartado."},
+    "312":{code:"312", cls:"k312", title:"Avería con detención de línea", doc:"Orden PM01 · correctivo",
+      who:"Técnico",
+      req:["Sí existe cambio o reparación de componente","El objeto se vuelve incapaz y requiere intervención inmediata","SÍ causa pérdida de producción","Registrar inicio y término real de la avería","El feedback técnico debe indicar que sí causó pérdida de producción"],
+      ex:"Falla una válvula de llenado y hay que reemplazarla: la llenadora se detiene y se pierde producción.",
+      next:"Identificar componentes en formato 5W+1H, con FLOC y número de material de lo reemplazado."},
+    "313":{code:"313", cls:"k313", title:"Mantenimiento correctivo programado", doc:"Orden PM01 · correctivo",
+      who:"Planificador",
+      req:["El objeto se está volviendo incapaz","NO requiere intervención inmediata","NO causa pérdida de producción","No se identificó por CIL ni por inspección de una PM03","Proviene de un aviso N1"],
+      ex:"Aviso N1 de cadenas de transporte con tirones: se programa el cambio antes de que genere detención de línea.",
+      next:"Requiere el aviso N1 con su ubicación técnica ya cargado."},
+    "410":{code:"410", cls:"k02", title:"Desde plan de mantenimiento", doc:"Orden PM02 · preventivo",
+      who:"Planificador",
+      req:["El hallazgo proviene de un aviso N2","Aplica solo a objetos técnicos prescritos para ser inspeccionados","Se crea manualmente desde el aviso","Idealmente con una semana de anticipación","Información técnica en formato 5W+1H"],
+      ex:"Cadenas con tirones detectadas en la inspección de transporte: se programa la actividad antes de que genere detención.",
+      next:"Es el seguimiento natural de las órdenes PM03 de inspección y lubricación."},
+    "411":{code:"411", cls:"k02", title:"Mejora de línea", doc:"Orden PM02 · preventivo",
+      who:"Planificador",
+      req:["Debe ser una mejora permanente, no una restauración","Cubre operatividad, mantenibilidad o confiabilidad","Costo bajo el umbral de capitalización (no Capex)","Repuestos planificados con anticipación"],
+      ex:"Instalación de lubricador automático · tensor de cadena automático · cambio de tipo de rodamiento para alargar la vida útil.",
+      next:"Ojo: pintura, cambio de filtros o cañerías y normalización de condición básica NO son mejoras."},
+    "412":{code:"412", cls:"k02", title:"Mejora de seguridad", doc:"Orden PM02 · preventivo",
+      who:"Planificador",
+      req:["Cambio físico que hace la máquina más segura de operar y mantener","Debe ser una mejora permanente, no una reparación","Repuestos planificados con anticipación"],
+      ex:"Barrera de luz que detiene la máquina al ingresar personal · válvula eléctrica de corte de aire para evitar lesiones en la limpieza.",
+      next:"Si estás reparando una protección existente, no es 412: es correctivo."},
+    "413":{code:"413", cls:"k02", title:"Mejora de ambiente", doc:"Orden PM02 · preventivo",
+      who:"Planificador",
+      req:["Cambio físico que reduce el impacto ambiental o mejora la higiene","Debe ser una mejora permanente, no una reparación","Repuestos planificados con anticipación"],
+      ex:"Sensor de control de calidad de agua · sensores de medición de consumo eléctrico.",
+      next:"Reparar un sensor de medición existente es restauración, no mejora."},
+    "500":{code:"500", cls:"k03", title:"Calibración", doc:"Orden PM03 · predictivo",
+      who:"Planificador",
+      req:["Frecuencia previamente establecida","Solo equipos e instrumentos del listado que requiere calibración","Programación automática del plan"],
+      ex:"Calibración de conductivímetro de lavadoras y de flujómetros de mixer, filtro de carbón y ósmosis.",
+      next:"La capacitación muestra esta familia como 510-515: confirma la numeración activa."},
+    "501":{code:"501", cls:"k03", title:"Monitoreo de condición", doc:"Orden PM03 · predictivo",
+      who:"Planificador",
+      req:["Se ejecuta sobre el equipo completo: definir equipos en operaciones y sub-operaciones","Mismo nivel de detalle si lo ejecuta un tercero","Los hallazgos se registran como aviso N2"],
+      ex:"Análisis de vibración, termografía, análisis de aceite, ultrasonido, endoscopía, inspección sensorial del técnico.",
+      next:"Busca detectar el deterioro en el punto P, lo más cerca posible de donde comenzó."},
+    "502":{code:"502", cls:"k03", title:"Lubricación", doc:"Orden PM03 · predictivo",
+      who:"Planificador",
+      req:["Incluir a MEC_LUBR como puesto responsable","Usar mapas de lubricación como instrucción técnica","La lubricación hecha por operadores puede o no manejarse en SAP, según criterio del departamento"],
+      ex:"Cambio de aceite de reductor de compresores · lubricación de descansos de línea de transporte · levas y patines de decapsuladora.",
+      next:"Es la única clave con puesto responsable obligatorio definido en el manual."},
+    "503":{code:"503", cls:"k03", title:"Inspección legal", doc:"Orden PM03 · predictivo",
+      who:"Planificador",
+      req:["Prescrita por la legislación local y los entes reguladores (GAO-KORE)","Alcance y frecuencia varían según el país","Cubre vapor, electricidad, áreas combustibles, equipo presurizado y de elevación"],
+      ex:"Mantenimiento de subestaciones eléctricas · inspección de filtros UV · inspección del sistema de seguridad de caldera.",
+      next:"No se reprograma por conveniencia: la frecuencia es normativa."},
+    "504":{code:"504", cls:"k03", title:"Servicio planeado / overhaul", doc:"Orden PM03 · predictivo",
+      who:"Planificador",
+      req:["Actividades periódicas bajo frecuencia establecida","Incluye reemplazo de piezas y reparación si se requiere","Puede combinar inspección y lubricación en la misma orden"],
+      ex:"Mantenimiento anual de llenadora, decapsuladora, transporte y tobera.",
+      next:"Los repuestos deben pedirse con la anticipación del plan."},
+    "505":{code:"505", cls:"k03", title:"Inspección seguridad / ambiente", doc:"Orden PM03 · predictivo",
+      who:"Planificador",
+      req:["Inspecciones definidas como críticas","Asegurar operación segura y sin impacto ambiental","Cubre electricidad, refrigeración, sistemas termales, aire comprimido, agua y válvulas de presión"],
+      ex:"Inspección de cámara de frío y de sensores de seguridad · mantenimiento de plataformas de trabajo y bombas de aguas lluvias.",
+      next:"Los requisitos están en las instrucciones de operación de ingeniería."}
+  };
+
+  var Q = {
+    start:{q:"¿Qué necesitas registrar?", opts:[
+      {t:"Un síntoma de falla que acabo de detectar", go:"aviso"},
+      {t:"Un trabajo correctivo que hay que ejecutar", go:"inmediata"},
+      {t:"Una mejora permanente de la máquina", go:"mejora"},
+      {t:"Una actividad planificada de frecuencia fija", go:"pm03"}
+    ]},
+    aviso:{q:"¿Cómo detectaste el síntoma?", opts:[
+      {t:"De manera fortuita, no venía de ningún plan", res:"n1"},
+      {t:"Ejecutando un plan de mantenimiento o una inspección", res:"n2"}
+    ]},
+    inmediata:{q:"¿Requiere intervención inmediata?",
+      hint:"Inmediata significa restaurar ahora para prevenir o minimizar pérdida de producción, pérdida completa de función, problemas de calidad o problemas de seguridad.",
+      opts:[
+        {t:"Sí, hay que intervenir ahora", go:"componente"},
+        {t:"No: el objeto se está volviendo incapaz, pero aún cumple", go:"origen"}
+      ]},
+    componente:{q:"¿Hubo cambio o reparación de componente?",
+      hint:"Perno, rodamiento, pistón, sensor, correa. Si solo ajustaste parámetros o mecánicamente, no hubo cambio de componente.",
+      opts:[
+        {t:"No, solo ajuste de parámetros o mecánico", res:"310"},
+        {t:"Sí, se cambió o reparó un componente", go:"detencion"}
+      ]},
+    detencion:{q:"¿Causó pérdida de producción?",
+      hint:"Si los transportes de acumulación lograron suplir la demanda y la llenadora no paró, no hubo pérdida de producción.",
+      opts:[
+        {t:"No, la línea siguió corriendo", res:"311"},
+        {t:"Sí, la línea se detuvo", res:"312"}
+      ]},
+    origen:{q:"¿De dónde salió el hallazgo?", opts:[
+      {t:"De un aviso N1: lo vi de manera fortuita", res:"313"},
+      {t:"De un aviso N2: salió de un plan o inspección PM03", res:"410"}
+    ]},
+    mejora:{q:"¿Qué mejora permanente aporta?",
+      hint:"Cuidado: pintura, limpieza de óxido, cambio de cañerías o filtros, normalización de condición básica y reparaciones grandes NO son mejoras.",
+      opts:[
+        {t:"Operatividad, mantenibilidad o confiabilidad de la línea", res:"411"},
+        {t:"Hace la máquina más segura de operar o mantener", res:"412"},
+        {t:"Reduce el impacto ambiental o mejora la higiene", res:"413"}
+      ]},
+    pm03:{q:"¿Qué tipo de actividad programada es?", opts:[
+      {t:"Calibración de instrumentos", res:"500"},
+      {t:"Monitoreo de condición: vibración, termografía, aceite", res:"501"},
+      {t:"Lubricación", res:"502"},
+      {t:"Inspección legal o reglamentaria", res:"503"},
+      {t:"Servicio planeado u overhaul", res:"504"},
+      {t:"Inspección de seguridad o ambiente", res:"505"}
+    ]}
+  };
+
+  var body = document.getElementById("toolBody"), path = [], node = "start";
+
+  function esc(s){return String(s).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];});}
+
+  function crumbs(){
+    if(!path.length) return "";
+    return '<div class="crumbs">'+path.map(function(p){return "<span>"+esc(p)+"</span>";}).join("")+"</div>";
+  }
+
+  function renderQ(key){
+    var n = Q[key], h = crumbs();
+    h += '<p class="qtext">'+esc(n.q)+"</p>";
+    if(n.hint) h += '<p class="qhint">'+esc(n.hint)+"</p>";
+    h += '<div class="opts">';
+    n.opts.forEach(function(o,i){
+      h += '<button class="opt" type="button" data-i="'+i+'"><b>'+(i+1)+'</b><span>'+esc(o.t)+"</span></button>";
+    });
+    h += "</div>";
+    body.innerHTML = h;
+    Array.prototype.forEach.call(body.querySelectorAll(".opt"), function(b){
+      b.addEventListener("click", function(){
+        var o = n.opts[+b.getAttribute("data-i")];
+        path.push(o.t);
+        if(o.res){ node = null; renderR(o.res); } else { node = o.go; renderQ(o.go); }
+        body.scrollIntoView({block:"nearest"});
+      });
+    });
+  }
+
+  function renderR(key){
+    var r = R[key], h = crumbs();
+    h += '<div class="res-head"><span class="k '+r.cls+'" style="font-size:16px;padding:5px 11px">'+esc(r.code)+'</span>';
+    h += '<span class="res-title">'+esc(r.title)+"</span></div>";
+    h += '<p class="res-doc">'+esc(r.doc)+" · lo crea: <b>"+esc(r.who)+"</b></p>";
+    h += '<div class="res-grid"><div><h4>Criterios y requisitos</h4><ul>';
+    r.req.forEach(function(x){ h += "<li>"+esc(x)+"</li>"; });
+    h += "</ul></div><div><h4>Ejemplo</h4><p>"+esc(r.ex)+"</p></div>";
+    h += "<div><h4>Ten presente</h4><p>"+esc(r.next)+"</p></div></div>";
+    body.innerHTML = h;
+  }
+
+  function reset(){ path = []; node = "start"; renderQ("start"); }
+  document.getElementById("reset").addEventListener("click", reset);
+  reset();
+})();
+</script>
+</body>
+</html>
