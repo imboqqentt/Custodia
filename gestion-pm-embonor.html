@@ -122,6 +122,21 @@
   .opb > details.op:first-of-type{margin-top:0}
   .qq + .opb, .qh + details.op{margin-top:0}
 
+  .tool-head-row{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap}
+  .btn{font:inherit; font-size:13.5px; cursor:pointer; background:transparent; border:1px solid var(--line-2);
+       color:var(--ink-2); padding:6px 13px; border-radius:3px}
+  .btn:hover{border-color:var(--accent-2); color:var(--accent)}
+  .crumbs{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; font-size:12.5px; color:var(--ink-3)}
+  .crumbs span{background:var(--surface-2); border:1px solid var(--line); padding:2px 9px; border-radius:2px}
+  .opts{display:grid; gap:9px; margin-top:16px}
+  .opt{text-align:left; font:inherit; font-size:16px; color:var(--ink); cursor:pointer; background:var(--surface);
+       border:1px solid var(--line-2); border-radius:3px; padding:14px 16px;
+       display:flex; gap:11px; align-items:center; width:100%}
+  .opt:hover{border-color:var(--accent-2); background:var(--accent-soft)}
+  .opt > b{color:var(--accent); font-family:ui-monospace,Consolas,monospace; font-size:12px; flex:none; align-self:flex-start; padding-top:2px}
+  .opt > span{flex:1 1 auto; min-width:0}
+  .opt > .k{flex:none}
+
   .res-top{display:flex; align-items:center; gap:11px; flex-wrap:wrap}
   .res-k{font-size:16px; padding:5px 12px}
   .res-title{font-size:20px; font-weight:700}
@@ -215,6 +230,8 @@
     .res-grid{margin-top:14px}
     .res-grid > div{padding:13px 14px}
     .res-title{font-size:18.5px}
+    .opt{padding:13px 14px; font-size:15.5px}
+    .opts{margin-top:14px}
 
     .tw{border:0; box-shadow:none; overflow:visible; background:transparent}
     table{min-width:0; display:block; font-size:15px}
@@ -245,6 +262,8 @@
   @media print{
     .bar,.noprint{display:none!important}
     .tool{box-shadow:none}
+    #selBody{display:block!important}
+    .wiz,.btn{display:none!important}
     details.op > summary::before{content:"\25B8"}
     body{background:#fff; font-size:11pt}
     section{page-break-inside:avoid; padding:20px 0}
@@ -302,9 +321,9 @@
     <h2>Tres preguntas y sale la clave</h2>
     <p class="ssub col">Responde según lo que ocurrió. Al final tienes quién crea el documento, qué criterios debe cumplir y qué campos no puedes dejar en blanco.</p>
 
-    <div class="tool">
+    <div class="tool" id="selTool">
       <div class="tool-head"><h3>Toca la opción que corresponda</h3></div>
-      <div class="tool-body">
+      <div class="tool-body" id="selBody">
       <p class="qq">¿Qué necesitas registrar?</p>
       <details class="op">
         <summary><span>Un síntoma de falla que acabo de detectar</span></summary>
@@ -902,5 +921,111 @@
   </div>
 </footer>
 
+
+<script>
+(function(){
+  "use strict";
+  var tool = document.getElementById("selTool"), acc = document.getElementById("selBody");
+  if(!tool || !acc || !acc.children || !("classList" in document.createElement("div"))) return;
+
+  function txt(el){ return el ? (el.textContent || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "") : ""; }
+  function hasCls(el, c){ return el && el.classList && el.classList.contains(c); }
+
+  // El acordeón es la fuente de los datos: no se duplica nada.
+  function leer(caja){
+    var g = {q:"", hint:"", opts:[], res:null}, k = caja.children, i, j, c;
+    for(i = 0; i < k.length; i++){
+      c = k[i];
+      if(hasCls(c, "qq")) g.q = txt(c);
+      else if(hasCls(c, "qh")) g.hint = txt(c);
+      else if(hasCls(c, "res")) g.res = c;
+      else if(c.tagName === "DETAILS"){
+        var sum = c.getElementsByTagName("summary")[0], dentro = null, hijos = c.children;
+        for(j = 0; j < hijos.length; j++) if(hasCls(hijos[j], "opb")) dentro = hijos[j];
+        if(!sum || !dentro) continue;
+        var spans = sum.getElementsByTagName("span"), etiqueta = null, chip = null;
+        for(j = 0; j < spans.length; j++){
+          if(hasCls(spans[j], "sum-k")) chip = spans[j];
+          else if(!etiqueta) etiqueta = spans[j];
+        }
+        g.opts.push({
+          label: etiqueta ? txt(etiqueta) : txt(sum),
+          chip: chip ? chip.cloneNode(true) : null,
+          nodo: leer(dentro)
+        });
+      }
+    }
+    return g;
+  }
+
+  var raiz;
+  try{ raiz = leer(acc); }catch(e){ return; }      // si algo falla, queda el acordeón
+  if(!raiz.opts.length) return;
+
+  var wiz = document.createElement("div");
+  wiz.className = "wiz tool-body";
+  acc.parentNode.insertBefore(wiz, acc);
+  acc.style.display = "none";
+
+  var cab = tool.getElementsByClassName("tool-head")[0];
+  var titulo = cab ? cab.getElementsByTagName("h3")[0] : null;
+  if(titulo) titulo.textContent = "\u00bfQu\u00e9 corresponde crear?";
+  var reiniciar = document.createElement("button");
+  reiniciar.type = "button";
+  reiniciar.className = "btn";
+  reiniciar.textContent = "Empezar de nuevo";
+  if(cab){ cab.className += " tool-head-row"; cab.appendChild(reiniciar); }
+
+  var ruta = [];
+
+  function mostrar(nodo, mover){
+    while(wiz.firstChild) wiz.removeChild(wiz.firstChild);
+
+    if(ruta.length){
+      var cr = document.createElement("div");
+      cr.className = "crumbs";
+      for(var i = 0; i < ruta.length; i++){
+        var s = document.createElement("span");
+        s.textContent = ruta[i];
+        cr.appendChild(s);
+      }
+      wiz.appendChild(cr);
+    }
+
+    if(nodo.res){
+      wiz.appendChild(nodo.res.cloneNode(true));
+    }else{
+      if(nodo.q){ var p = document.createElement("p"); p.className = "qq"; p.textContent = nodo.q; wiz.appendChild(p); }
+      if(nodo.hint){ var ph = document.createElement("p"); ph.className = "qh"; ph.textContent = nodo.hint; wiz.appendChild(ph); }
+      var caja = document.createElement("div");
+      caja.className = "opts";
+      for(var n = 0; n < nodo.opts.length; n++) armar(caja, nodo.opts[n], n);
+      wiz.appendChild(caja);
+    }
+
+    if(mover && tool.getBoundingClientRect && tool.getBoundingClientRect().top < 0 && tool.scrollIntoView){
+      tool.scrollIntoView();
+    }
+  }
+
+  function armar(caja, o, n){
+    var b = document.createElement("button");
+    b.type = "button";
+    b.className = "opt";
+    var num = document.createElement("b");
+    num.textContent = String(n + 1);
+    b.appendChild(num);
+    var sp = document.createElement("span");
+    sp.textContent = o.label;
+    b.appendChild(sp);
+    if(o.chip) b.appendChild(o.chip);
+    b.onclick = function(){ ruta.push(o.label); mostrar(o.nodo, true); };
+    caja.appendChild(b);
+  }
+
+  reiniciar.onclick = function(){ ruta = []; mostrar(raiz, true); };
+  mostrar(raiz, false);
+})();
+</script>
 </body>
 </html>
