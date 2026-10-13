@@ -137,17 +137,28 @@
   .opt > span{flex:1 1 auto; min-width:0}
   .opt > .k{flex:none}
 
-  .res-top{display:flex; align-items:center; gap:11px; flex-wrap:wrap}
-  .res-k{font-size:16px; padding:5px 12px}
-  .res-title{font-size:20px; font-weight:700}
-  .res-doc{font-size:14.5px; color:var(--ink-2); margin-top:8px}
-  .res-doc b{color:var(--ink)}
-  .res-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); margin-top:16px}
-  .res-grid > div{background:var(--surface); padding:15px 17px}
-  .res-grid h4{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); margin-bottom:9px; font-weight:700}
-  .res-grid ul{padding-left:17px; font-size:15px; color:var(--ink-2)}
-  .res-grid li+li{margin-top:5px}
-  .res-grid p{font-size:15px; color:var(--ink-2)}
+  /* resultado: qué te toca hacer */
+  .verd{border:1px solid var(--line-2); background:var(--surface)}
+  .vrow{display:grid; grid-template-columns:150px 1fr; gap:14px; align-items:baseline;
+        padding:13px 16px; border-bottom:1px solid var(--line)}
+  .vrow:last-child{border-bottom:0}
+  .vrow.si{box-shadow:inset 4px 0 0 var(--c313); background:var(--c313-bg)}
+  .vrow.no{box-shadow:inset 4px 0 0 var(--line-2)}
+  .vlab{font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); font-weight:700}
+  .vval{font-size:15.5px; color:var(--ink-2); line-height:1.45}
+  .vval b{color:var(--ink); font-weight:700}
+  .msg{margin-top:18px; font-size:16.5px; color:var(--ink-2); line-height:1.5}
+  .msg b{display:block; font-size:19px; color:var(--ink); line-height:1.3; margin-bottom:4px}
+  ol.pasos{list-style:none; counter-reset:paso; padding:0; margin:12px 0 0;
+           border:1px solid var(--line); background:var(--surface)}
+  ol.pasos li{counter-increment:paso; position:relative; padding:11px 15px 11px 46px;
+              border-bottom:1px solid var(--line); font-size:15px; color:var(--ink-2); line-height:1.45}
+  ol.pasos li:last-child{border-bottom:0}
+  ol.pasos li::before{content:counter(paso); position:absolute; left:15px; top:11px; width:20px; text-align:center;
+              font-family:ui-monospace,Consolas,monospace; font-size:13px; font-weight:700; color:var(--accent)}
+  ol.pasos li b{color:var(--ink); font-weight:650}
+  .ojo{margin-top:14px; border-left:3px solid var(--c310); background:var(--c310-bg);
+       padding:11px 14px; font-size:14.5px; color:var(--ink); line-height:1.5}
 
   /* tablas */
   .tw{overflow-x:auto; border:1px solid var(--line); background:var(--surface); box-shadow:var(--shadow)}
@@ -226,10 +237,11 @@
     .opb details.op[open]{border-left-color:var(--accent-2)}
     .opb details.op > summary,
     .opb details.op[open] > summary{background:transparent; border-bottom:0}
-    .res{border:1px solid var(--line); background:var(--surface); border-radius:3px; padding:14px 13px}
-    .res-grid{margin-top:14px}
-    .res-grid > div{padding:13px 14px}
-    .res-title{font-size:18.5px}
+    .res{border:1px solid var(--line); background:var(--surface); border-radius:3px; padding:13px 12px}
+    .vrow{grid-template-columns:1fr; gap:3px; padding:11px 13px}
+    .msg b{font-size:17.5px}
+    ol.pasos li{padding:10px 12px 10px 38px; font-size:14.5px}
+    ol.pasos li::before{left:10px; top:10px}
     .opt{padding:13px 14px; font-size:15.5px}
     .opts{margin-top:14px}
 
@@ -256,7 +268,6 @@
     .tool-body{padding:18px 15px 20px}
     .qtext{font-size:19px}
     .opt{padding:15px 15px; font-size:15.5px}
-    .res-grid{grid-template-columns:1fr}
     .cl-card li{font-size:15px}
   }
   @media print{
@@ -319,7 +330,7 @@
   <div class="wrap">
     <div class="shead"><span class="skey">Selector</span></div>
     <h2>Tres preguntas y sale la clave</h2>
-    <p class="ssub col">Responde según lo que ocurrió. Al final tienes quién crea el documento, qué criterios debe cumplir y qué campos no puedes dejar en blanco.</p>
+    <p class="ssub col">Responde según lo que ocurrió. Al final te dice si debes hacer un aviso y de qué tipo, si debes crear una orden de trabajo y con qué clave, y qué completar en cada campo.</p>
 
     <div class="tool" id="selTool">
       <div class="tool-head"><h3>Toca la opción que corresponda</h3></div>
@@ -330,16 +341,23 @@
         <div class="opb">
       <p class="qq">¿Cómo detectaste el síntoma?</p>
       <details class="op">
-        <summary><span>De manera fortuita, no venía de ningún plan</span> <span class="k k311 sum-k">N1</span></summary>
+        <summary><span>De manera fortuita, no venía de ningún plan ni inspección</span> <span class="k k311 sum-k">N1</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k311 res-k">N1</span><span class="res-title">Aviso de avería N1</span></div>
-            <p class="res-doc">Aviso de mantenimiento · lo crea: <b>Quien detecta el síntoma</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Síntoma registrado de manera fortuita</li><li>No proviene de ningún plan de mantenimiento</li><li>Se registra aunque el equipo siga operando</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Tipo de aviso: N1 o N2</li><li>Descripción breve del síntoma</li><li>Ubicación técnica detallada</li><li>Síntoma detallado: material, medidas, N° de parte</li><li>Parte del objeto, síntoma y causa</li><li>Datos del autor</li><li>Prioridad</li></ul></div>
-              <div><h4>Ten presente</h4><p>El planificador lo evalúa y programa la reparación como PM01 clave 313.</p></div>
+            <div class="verd">
+              <div class="vrow si"><span class="vlab">Aviso</span><span class="vval"><b>Sí · tipo N1</b> — lo haces tú.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — el planificador la crea después como PM01 clave 313.</span></div>
             </div>
+            <p class="msg"><b>Debes hacer un aviso del tipo N1.</b> No te olvides de completar, de arriba hacia abajo:</p>
+            <ol class="pasos">
+              <li><b>Cabecera:</b> el síntoma de falla: temperatura, vibración, ruido, fuga, olor, desbalanceo o zumbido.</li>
+              <li><b>Ubicación técnica:</b> precisa para el equipo, al nivel más detallado posible.</li>
+              <li><b>Descripción del síntoma de falla:</b> lo más detallada posible: material, medidas, espesor, N° de parte o código SAP.</li>
+              <li><b>Datos del autor:</b> define tus datos como autor del aviso.</li>
+              <li><b>Prioridad:</b> define la prioridad del aviso.</li>
+              <li><b>Parte del objeto, síntoma de avería y causa:</b> defínelos en los catálogos del aviso.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> Es N1 porque lo detectaste de manera fortuita, fuera de cualquier plan. Si lo hubieras encontrado ejecutando una inspección, sería N2.</p>
           </div>
         </div>
       </details>
@@ -347,13 +365,20 @@
         <summary><span>Ejecutando un plan de mantenimiento o una inspección</span> <span class="k k03 sum-k">N2</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k03 res-k">N2</span><span class="res-title">Aviso de avería N2</span></div>
-            <p class="res-doc">Aviso de mantenimiento · lo crea: <b>Quien ejecuta la inspección o el plan</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Síntoma detectado ejecutando un plan o inspección predictiva</li><li>Sobre objetos técnicos prescritos para ser inspeccionados</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Tipo de aviso: N1 o N2</li><li>Descripción breve del síntoma</li><li>Ubicación técnica detallada</li><li>Síntoma detallado: material, medidas, N° de parte</li><li>Parte del objeto, síntoma y causa</li><li>Datos del autor</li><li>Prioridad</li></ul></div>
-              <div><h4>Ten presente</h4><p>El planificador programa el seguimiento como PM02 clave 410.</p></div>
+            <div class="verd">
+              <div class="vrow si"><span class="vlab">Aviso</span><span class="vval"><b>Sí · tipo N2</b> — lo haces tú.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — el planificador la crea como PM02 clave 410.</span></div>
             </div>
+            <p class="msg"><b>Debes hacer un aviso del tipo N2.</b> No te olvides de completar, de arriba hacia abajo:</p>
+            <ol class="pasos">
+              <li><b>Cabecera:</b> el síntoma de falla: temperatura, vibración, ruido, fuga, olor, desbalanceo o zumbido.</li>
+              <li><b>Ubicación técnica:</b> precisa para el equipo, al nivel más detallado posible.</li>
+              <li><b>Descripción del síntoma de falla:</b> lo más detallada posible: material, medidas, espesor, N° de parte o código SAP.</li>
+              <li><b>Datos del autor:</b> define tus datos como autor del aviso.</li>
+              <li><b>Prioridad:</b> define la prioridad del aviso.</li>
+              <li><b>Parte del objeto, síntoma de avería y causa:</b> defínelos en los catálogos del aviso.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> Es N2 porque salió de un plan de mantenimiento o de una inspección. Eso permite medir si los planes están detectando a tiempo.</p>
           </div>
         </div>
       </details>
@@ -373,13 +398,20 @@
             <summary><span>No cambié componente: solo ajuste de parámetros o mecánico</span> <span class="k k310 sum-k">310</span></summary>
             <div class="opb">
               <div class="res">
-                <div class="res-top"><span class="k k310 res-k">310</span><span class="res-title">Ajustes</span></div>
-                <p class="res-doc">Orden PM01 · correctivo · lo crea: <b>Técnico</b></p>
-                <div class="res-grid">
-                  <div><h4>Criterios que debe cumplir</h4><ul><li>NO hay cambio ni reparación de componente</li><li>El objeto se vuelve incapaz y requiere intervención inmediata</li><li>Puede detener la línea o no</li><li>El origen puede ser operacional o de mantenimiento</li></ul></div>
-                  <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Inicio y término de avería</li><li>Si detuvo o no la producción</li><li>Detalle en el aviso asociado</li></ul></div>
-                  <div><h4>Ten presente</h4><p>Identifica igual si hubo o no detención de línea: la 310 se da en ambos casos.</p></div>
+                <div class="verd">
+                  <div class="vrow si"><span class="vlab">Aviso</span><span class="vval"><b>Sí · aviso asociado a la orden</b> — ahí describes la actividad.</span></div>
+                  <div class="vrow si"><span class="vlab">Orden de trabajo</span><span class="vval"><b>Sí · PM01 clave 310</b> — la creas tú.</span></div>
                 </div>
+                <p class="msg"><b>Debes crear una orden de trabajo PM01 con clave 310 (ajustes).</b> No te olvides de completar, de arriba hacia abajo:</p>
+                <ol class="pasos">
+                  <li><b>Texto breve:</b> con verbo, referido a la acción: «Se ajusta…», «Se reemplaza…», «Se repara…».</li>
+                  <li><b>Puesto responsable:</b> señala el puesto que ejecutó el trabajo.</li>
+                  <li><b>Clave de la OT:</b> 310.</li>
+                  <li><b>Aviso asociado:</b> describe la actividad lo más detallado posible.</li>
+                  <li><b>Ubicación técnica:</b> completa y precisa para el equipo.</li>
+                  <li><b>Inicio y término de la avería:</b> registra las horas reales e indica si detuvo o no la producción.</li>
+                </ol>
+                <p class="ojo"><b>Ojo:</b> Es 310 porque no cambiaste ni reparaste componentes. Igual identifica el componente en formato 5W+1H aunque no hayas cambiado piezas, e indica si la línea se detuvo: la 310 aplica en ambos casos.</p>
               </div>
             </div>
           </details>
@@ -387,13 +419,20 @@
             <summary><span>Cambié o reparé componente y la línea siguió corriendo</span> <span class="k k311 sum-k">311</span></summary>
             <div class="opb">
               <div class="res">
-                <div class="res-top"><span class="k k311 res-k">311</span><span class="res-title">Avería sin detención de línea</span></div>
-                <p class="res-doc">Orden PM01 · correctivo · lo crea: <b>Técnico</b></p>
-                <div class="res-grid">
-                  <div><h4>Criterios que debe cumplir</h4><ul><li>SÍ hay cambio o reparación de componente</li><li>Requiere intervención inmediata</li><li>NO causa pérdida de producción</li></ul></div>
-                  <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Inicio y término de avería</li><li>Si detuvo o no la producción</li><li>Detalle en el aviso asociado</li></ul></div>
-                  <div><h4>Ten presente</h4><p>Deja escrito de forma explícita que no hubo pérdida de producción: eso justifica la 311 y no la 312.</p></div>
+                <div class="verd">
+                  <div class="vrow si"><span class="vlab">Aviso</span><span class="vval"><b>Sí · aviso asociado a la orden</b> — ahí describes la actividad.</span></div>
+                  <div class="vrow si"><span class="vlab">Orden de trabajo</span><span class="vval"><b>Sí · PM01 clave 311</b> — la creas tú.</span></div>
                 </div>
+                <p class="msg"><b>Debes crear una orden de trabajo PM01 con clave 311 (avería sin detención de línea).</b> No te olvides de completar, de arriba hacia abajo:</p>
+                <ol class="pasos">
+                  <li><b>Texto breve:</b> con verbo, referido a la acción: «Se ajusta…», «Se reemplaza…», «Se repara…».</li>
+                  <li><b>Puesto responsable:</b> señala el puesto que ejecutó el trabajo.</li>
+                  <li><b>Clave de la OT:</b> 311.</li>
+                  <li><b>Aviso asociado:</b> describe la actividad lo más detallado posible.</li>
+                  <li><b>Ubicación técnica:</b> completa y precisa para el equipo.</li>
+                  <li><b>Inicio y término de la avería:</b> registra las horas reales e indica que NO detuvo la producción.</li>
+                </ol>
+                <p class="ojo"><b>Ojo:</b> Deja escrito que no hubo pérdida de producción: eso es lo que justifica la 311 y no la 312. Identifica los componentes en formato 5W+1H: FLOC y número de material de lo que cambiaste, también en el repuesto que devuelves a bodega.</p>
               </div>
             </div>
           </details>
@@ -401,13 +440,20 @@
             <summary><span>Cambié o reparé componente y la línea se detuvo</span> <span class="k k312 sum-k">312</span></summary>
             <div class="opb">
               <div class="res">
-                <div class="res-top"><span class="k k312 res-k">312</span><span class="res-title">Avería con detención de línea</span></div>
-                <p class="res-doc">Orden PM01 · correctivo · lo crea: <b>Técnico</b></p>
-                <div class="res-grid">
-                  <div><h4>Criterios que debe cumplir</h4><ul><li>SÍ hay cambio o reparación de componente</li><li>Requiere intervención inmediata</li><li>SÍ causa pérdida de producción</li></ul></div>
-                  <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Inicio y término de avería</li><li>Si detuvo o no la producción</li><li>Detalle en el aviso asociado</li></ul></div>
-                  <div><h4>Ten presente</h4><p>Registra la hora real de inicio y término de la avería: es el dato con el que se mide la pérdida.</p></div>
+                <div class="verd">
+                  <div class="vrow si"><span class="vlab">Aviso</span><span class="vval"><b>Sí · aviso asociado a la orden</b> — ahí describes la actividad.</span></div>
+                  <div class="vrow si"><span class="vlab">Orden de trabajo</span><span class="vval"><b>Sí · PM01 clave 312</b> — la creas tú.</span></div>
                 </div>
+                <p class="msg"><b>Debes crear una orden de trabajo PM01 con clave 312 (avería con detención de línea).</b> No te olvides de completar, de arriba hacia abajo:</p>
+                <ol class="pasos">
+                  <li><b>Texto breve:</b> con verbo, referido a la acción: «Se ajusta…», «Se reemplaza…», «Se repara…».</li>
+                  <li><b>Puesto responsable:</b> señala el puesto que ejecutó el trabajo.</li>
+                  <li><b>Clave de la OT:</b> 312.</li>
+                  <li><b>Aviso asociado:</b> describe la actividad lo más detallado posible.</li>
+                  <li><b>Ubicación técnica:</b> completa y precisa para el equipo.</li>
+                  <li><b>Inicio y término de la avería:</b> registra las horas reales e indica que SÍ detuvo la producción.</li>
+                </ol>
+                <p class="ojo"><b>Ojo:</b> Las horas reales de inicio y término son el dato con el que se mide la pérdida de producción. Identifica los componentes en formato 5W+1H: FLOC y número de material de lo que cambiaste, también en el repuesto que devuelves a bodega.</p>
               </div>
             </div>
           </details>
@@ -418,30 +464,44 @@
         <div class="opb">
           <p class="qq">¿De dónde salió el hallazgo?</p>
           <details class="op">
-            <summary><span>De un aviso N1: lo vi de manera fortuita</span> <span class="k k313 sum-k">313</span></summary>
+            <summary><span>Lo vi de manera fortuita, no venía de ningún plan</span> <span class="k k313 sum-k">313</span></summary>
             <div class="opb">
               <div class="res">
-                <div class="res-top"><span class="k k313 res-k">313</span><span class="res-title">Correctivo programado</span></div>
-                <p class="res-doc">Orden PM01 · correctivo · lo crea: <b>Planificador</b></p>
-                <div class="res-grid">
-                  <div><h4>Criterios que debe cumplir</h4><ul><li>El objeto se está volviendo incapaz</li><li>NO requiere intervención inmediata</li><li>NO causa pérdida de producción</li><li>No se identificó por CIL ni por inspección de una PM03</li><li>Proviene de un aviso N1</li></ul></div>
-                  <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Inicio y término de avería</li><li>Si detuvo o no la producción</li><li>Detalle en el aviso asociado</li></ul></div>
-                  <div><h4>Ten presente</h4><p>Necesita el aviso N1 con su ubicación técnica ya cargada.</p></div>
+                <div class="verd">
+                  <div class="vrow si"><span class="vlab">Aviso</span><span class="vval"><b>Sí · tipo N1</b> — lo haces tú, si todavía no existe.</span></div>
+                  <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — el planificador la crea como PM01 clave 313 a partir de tu aviso.</span></div>
                 </div>
+                <p class="msg"><b>Debes hacer un aviso del tipo N1.</b> No te olvides de completar, de arriba hacia abajo:</p>
+                <ol class="pasos">
+                  <li><b>Cabecera:</b> el síntoma de falla: temperatura, vibración, ruido, fuga, olor, desbalanceo o zumbido.</li>
+                  <li><b>Ubicación técnica:</b> precisa para el equipo, al nivel más detallado posible.</li>
+                  <li><b>Descripción del síntoma de falla:</b> lo más detallada posible: material, medidas, espesor, N° de parte o código SAP.</li>
+                  <li><b>Datos del autor:</b> define tus datos como autor del aviso.</li>
+                  <li><b>Prioridad:</b> define la prioridad del aviso.</li>
+                  <li><b>Parte del objeto, síntoma de avería y causa:</b> defínelos en los catálogos del aviso.</li>
+                </ol>
+                <p class="ojo"><b>Ojo:</b> La 313 se programa antes de que la falla genere detención. Sin un aviso N1 bien hecho, el planificador no tiene desde dónde crearla.</p>
               </div>
             </div>
           </details>
           <details class="op">
-            <summary><span>De un aviso N2: salió de un plan o inspección</span> <span class="k k02 sum-k">410</span></summary>
+            <summary><span>Salió de un plan de mantenimiento o una inspección</span> <span class="k k02 sum-k">410</span></summary>
             <div class="opb">
               <div class="res">
-                <div class="res-top"><span class="k k02 res-k">410</span><span class="res-title">Desde plan de mantenimiento</span></div>
-                <p class="res-doc">Orden PM02 · preventivo · lo crea: <b>Planificador</b></p>
-                <div class="res-grid">
-                  <div><h4>Criterios que debe cumplir</h4><ul><li>El hallazgo proviene de un aviso N2</li><li>Solo sobre objetos prescritos para ser inspeccionados</li><li>Se crea manualmente desde el aviso</li></ul></div>
-                  <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Información técnica en 5W+1H</li><li>Repuestos planificados con anticipación</li></ul></div>
-                  <div><h4>Ten presente</h4><p>Es el seguimiento natural de las órdenes PM03 de inspección y lubricación.</p></div>
+                <div class="verd">
+                  <div class="vrow si"><span class="vlab">Aviso</span><span class="vval"><b>Sí · tipo N2</b> — lo haces tú, si todavía no existe.</span></div>
+                  <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — el planificador la crea como PM02 clave 410 a partir de tu aviso.</span></div>
                 </div>
+                <p class="msg"><b>Debes hacer un aviso del tipo N2.</b> No te olvides de completar, de arriba hacia abajo:</p>
+                <ol class="pasos">
+                  <li><b>Cabecera:</b> el síntoma de falla: temperatura, vibración, ruido, fuga, olor, desbalanceo o zumbido.</li>
+                  <li><b>Ubicación técnica:</b> precisa para el equipo, al nivel más detallado posible.</li>
+                  <li><b>Descripción del síntoma de falla:</b> lo más detallada posible: material, medidas, espesor, N° de parte o código SAP.</li>
+                  <li><b>Datos del autor:</b> define tus datos como autor del aviso.</li>
+                  <li><b>Prioridad:</b> define la prioridad del aviso.</li>
+                  <li><b>Parte del objeto, síntoma de avería y causa:</b> defínelos en los catálogos del aviso.</li>
+                </ol>
+                <p class="ojo"><b>Ojo:</b> La 410 es el seguimiento de lo que encontró una inspección o un plan. Por eso el aviso es N2 y no N1.</p>
               </div>
             </div>
           </details>
@@ -458,13 +518,18 @@
         <summary><span>Operatividad, mantenibilidad o confiabilidad</span> <span class="k k02 sum-k">411</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k02 res-k">411</span><span class="res-title">Mejora de línea</span></div>
-            <p class="res-doc">Orden PM02 · preventivo · lo crea: <b>Planificador</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Mejora permanente, no una restauración</li><li>Cubre operatividad, mantenibilidad o confiabilidad</li><li>Costo bajo el umbral de capitalización</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Información técnica en 5W+1H</li><li>Repuestos planificados con anticipación</li></ul></div>
-              <div><h4>Ten presente</h4><p>Pintura, filtros, cañerías y normalización de condición básica NO son mejora.</p></div>
+            <div class="verd">
+              <div class="vrow si"><span class="vlab">Aviso</span><span class="vval"><b>Sí · la PM02 nace de un aviso</b> — pregunta al planificador qué clase usar.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — el planificador la crea como PM02 clave 411.</span></div>
             </div>
+            <p class="msg"><b>No debes crear la orden: propón la mejora de línea al planificador.</b> Lo que debe llevar para que la cree:</p>
+            <ol class="pasos">
+              <li><b>Ubicación técnica:</b> el equipo donde va la mejora.</li>
+              <li><b>Información técnica:</b> en formato 5W+1H: qué, por qué, dónde, cuándo, quién y cómo.</li>
+              <li><b>Repuestos y materiales:</b> para que se planifiquen con anticipación y no salgan del stock del mantenimiento regular.</li>
+              <li><b>Plazo:</b> la orden se crea al menos una semana antes de ejecutarla.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> Restaurar algo a su condición original no es mejora: pintura, filtros o cañerías no van en 411.</p>
           </div>
         </div>
       </details>
@@ -472,13 +537,18 @@
         <summary><span>Hace la máquina más segura de operar o mantener</span> <span class="k k02 sum-k">412</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k02 res-k">412</span><span class="res-title">Mejora de seguridad</span></div>
-            <p class="res-doc">Orden PM02 · preventivo · lo crea: <b>Planificador</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Cambio físico que hace la máquina más segura de operar y mantener</li><li>Mejora permanente, no una reparación</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Información técnica en 5W+1H</li><li>Repuestos planificados con anticipación</li></ul></div>
-              <div><h4>Ten presente</h4><p>Reparar una protección que ya existía no es 412: es correctivo.</p></div>
+            <div class="verd">
+              <div class="vrow si"><span class="vlab">Aviso</span><span class="vval"><b>Sí · la PM02 nace de un aviso</b> — pregunta al planificador qué clase usar.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — el planificador la crea como PM02 clave 412.</span></div>
             </div>
+            <p class="msg"><b>No debes crear la orden: propón la mejora de seguridad al planificador.</b> Lo que debe llevar para que la cree:</p>
+            <ol class="pasos">
+              <li><b>Ubicación técnica:</b> el equipo donde va la mejora.</li>
+              <li><b>Información técnica:</b> en formato 5W+1H: qué, por qué, dónde, cuándo, quién y cómo.</li>
+              <li><b>Repuestos y materiales:</b> para que se planifiquen con anticipación y no salgan del stock del mantenimiento regular.</li>
+              <li><b>Plazo:</b> la orden se crea al menos una semana antes de ejecutarla.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> Reparar una protección que ya existía no es 412: es correctivo.</p>
           </div>
         </div>
       </details>
@@ -486,13 +556,18 @@
         <summary><span>Reduce el impacto ambiental o mejora la higiene</span> <span class="k k02 sum-k">413</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k02 res-k">413</span><span class="res-title">Mejora de ambiente</span></div>
-            <p class="res-doc">Orden PM02 · preventivo · lo crea: <b>Planificador</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Reduce el impacto ambiental o mejora la higiene</li><li>Mejora permanente, no una reparación</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Información técnica en 5W+1H</li><li>Repuestos planificados con anticipación</li></ul></div>
-              <div><h4>Ten presente</h4><p>Reparar un sensor de medición existente es restauración, no mejora.</p></div>
+            <div class="verd">
+              <div class="vrow si"><span class="vlab">Aviso</span><span class="vval"><b>Sí · la PM02 nace de un aviso</b> — pregunta al planificador qué clase usar.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — el planificador la crea como PM02 clave 413.</span></div>
             </div>
+            <p class="msg"><b>No debes crear la orden: propón la mejora de ambiente al planificador.</b> Lo que debe llevar para que la cree:</p>
+            <ol class="pasos">
+              <li><b>Ubicación técnica:</b> el equipo donde va la mejora.</li>
+              <li><b>Información técnica:</b> en formato 5W+1H: qué, por qué, dónde, cuándo, quién y cómo.</li>
+              <li><b>Repuestos y materiales:</b> para que se planifiquen con anticipación y no salgan del stock del mantenimiento regular.</li>
+              <li><b>Plazo:</b> la orden se crea al menos una semana antes de ejecutarla.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> Reparar un sensor de medición que ya existía no es 413: es restauración.</p>
           </div>
         </div>
       </details>
@@ -500,13 +575,17 @@
         <summary><span>Devuelve algo a su condición original: pintura, filtros, cañerías</span> <span class="k k310 sum-k">OJO</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k310 res-k">OJO</span><span class="res-title">Esto no es una mejora</span></div>
-            <p class="res-doc">Restauración o reparación · lo crea: <b>Según el caso</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Pintura, limpieza de óxido, cañerías, filtros</li><li>Normalización de condiciones básicas</li><li>Renovación o reparación grande de máquinas</li><li>Reparación de ventilación, aguas servidas o sensores de medición</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Inicio y término de avería</li><li>Si detuvo o no la producción</li><li>Detalle en el aviso asociado</li></ul></div>
-              <div><h4>Ten presente</h4><p>Va como correctivo (310, 311, 312 o 313) o como servicio planeado 504, nunca como 411, 412 o 413.</p></div>
+            <div class="verd">
+              <div class="vrow no"><span class="vlab">Aviso</span><span class="vval"><b>Depende del caso</b> — mira las opciones de abajo.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No como mejora</b> — nunca con clave 411, 412 ni 413.</span></div>
             </div>
+            <p class="msg"><b>Esto no es una mejora: es restauración o reparación.</b> Dónde va entonces:</p>
+            <ol class="pasos">
+              <li><b>Si hay que intervenir ahora:</b> orden PM01 con clave 310, 311 o 312. La creas tú.</li>
+              <li><b>Si se puede programar:</b> aviso del tipo N1. El planificador crea la PM01 clave 313.</li>
+              <li><b>Si es parte de un servicio periódico:</b> va en la orden PM03 clave 504 del plan.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> Pintura, limpieza de óxido, cañerías, filtros, normalización de condiciones básicas y reparaciones grandes son restauración. Es el error de clasificación más frecuente.</p>
           </div>
         </div>
       </details>
@@ -520,13 +599,20 @@
         <summary><span>Calibración de instrumentos</span> <span class="k k03 sum-k">500</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k03 res-k">500</span><span class="res-title">Calibración</span></div>
-            <p class="res-doc">Orden PM03 · predictivo · lo crea: <b>Planificador</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Frecuencia previamente establecida</li><li>Solo instrumentos del listado que requiere calibración</li><li>Programación automática del plan</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Información técnica en 5W+1H</li><li>Repuestos planificados con anticipación</li></ul></div>
-              <div><h4>Ten presente</h4><p>Confirma la numeración activa: el manual dice 500 y la capacitación 510.</p></div>
+            <div class="verd">
+              <div class="vrow no"><span class="vlab">Aviso</span><span class="vval"><b>No para esta actividad</b> — pero si encuentras un síntoma de falla al ejecutarla, haz un aviso N2.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — la genera el plan de mantenimiento como PM03 clave 500. Tú la ejecutas.</span></div>
             </div>
+            <p class="msg"><b>No debes crear la orden: la genera el plan. Tu parte es ejecutarla y, si encuentras un síntoma de falla, hacer un aviso del tipo N2.</b> Si haces el aviso N2, completa de arriba hacia abajo:</p>
+            <ol class="pasos">
+              <li><b>Cabecera:</b> el síntoma de falla: temperatura, vibración, ruido, fuga, olor, desbalanceo o zumbido.</li>
+              <li><b>Ubicación técnica:</b> precisa para el equipo, al nivel más detallado posible.</li>
+              <li><b>Descripción del síntoma de falla:</b> lo más detallada posible: material, medidas, espesor, N° de parte o código SAP.</li>
+              <li><b>Datos del autor:</b> define tus datos como autor del aviso.</li>
+              <li><b>Prioridad:</b> define la prioridad del aviso.</li>
+              <li><b>Parte del objeto, síntoma de avería y causa:</b> defínelos en los catálogos del aviso.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> Confirma la numeración con el planificador: el manual dice 500 y la capacitación 510.</p>
           </div>
         </div>
       </details>
@@ -534,13 +620,20 @@
         <summary><span>Monitoreo de condición: vibración, termografía, aceite</span> <span class="k k03 sum-k">501</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k03 res-k">501</span><span class="res-title">Monitoreo de condición</span></div>
-            <p class="res-doc">Orden PM03 · predictivo · lo crea: <b>Planificador</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Se ejecuta sobre el equipo completo</li><li>Mismo nivel de detalle si lo ejecuta un tercero</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Información técnica en 5W+1H</li><li>Repuestos planificados con anticipación</li></ul></div>
-              <div><h4>Ten presente</h4><p>Todo hallazgo de esta inspección se registra como aviso N2, no como N1.</p></div>
+            <div class="verd">
+              <div class="vrow no"><span class="vlab">Aviso</span><span class="vval"><b>No para esta actividad</b> — pero si encuentras un síntoma de falla al ejecutarla, haz un aviso N2.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — la genera el plan de mantenimiento como PM03 clave 501. Tú la ejecutas.</span></div>
             </div>
+            <p class="msg"><b>No debes crear la orden: la genera el plan. Tu parte es ejecutarla y, si encuentras un síntoma de falla, hacer un aviso del tipo N2.</b> Si haces el aviso N2, completa de arriba hacia abajo:</p>
+            <ol class="pasos">
+              <li><b>Cabecera:</b> el síntoma de falla: temperatura, vibración, ruido, fuga, olor, desbalanceo o zumbido.</li>
+              <li><b>Ubicación técnica:</b> precisa para el equipo, al nivel más detallado posible.</li>
+              <li><b>Descripción del síntoma de falla:</b> lo más detallada posible: material, medidas, espesor, N° de parte o código SAP.</li>
+              <li><b>Datos del autor:</b> define tus datos como autor del aviso.</li>
+              <li><b>Prioridad:</b> define la prioridad del aviso.</li>
+              <li><b>Parte del objeto, síntoma de avería y causa:</b> defínelos en los catálogos del aviso.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> Todo hallazgo de esta inspección es N2, nunca N1.</p>
           </div>
         </div>
       </details>
@@ -548,13 +641,20 @@
         <summary><span>Lubricación</span> <span class="k k03 sum-k">502</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k03 res-k">502</span><span class="res-title">Lubricación</span></div>
-            <p class="res-doc">Orden PM03 · predictivo · lo crea: <b>Planificador</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Incluir a MEC_LUBR como puesto responsable</li><li>Usar mapas de lubricación como instrucción técnica</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Información técnica en 5W+1H</li><li>Repuestos planificados con anticipación</li></ul></div>
-              <div><h4>Ten presente</h4><p>Es la única clave con puesto responsable obligatorio definido en el manual.</p></div>
+            <div class="verd">
+              <div class="vrow no"><span class="vlab">Aviso</span><span class="vval"><b>No para esta actividad</b> — pero si encuentras un síntoma de falla al ejecutarla, haz un aviso N2.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — la genera el plan de mantenimiento como PM03 clave 502. Tú la ejecutas.</span></div>
             </div>
+            <p class="msg"><b>No debes crear la orden: la genera el plan. Tu parte es ejecutarla y, si encuentras un síntoma de falla, hacer un aviso del tipo N2.</b> Si haces el aviso N2, completa de arriba hacia abajo:</p>
+            <ol class="pasos">
+              <li><b>Cabecera:</b> el síntoma de falla: temperatura, vibración, ruido, fuga, olor, desbalanceo o zumbido.</li>
+              <li><b>Ubicación técnica:</b> precisa para el equipo, al nivel más detallado posible.</li>
+              <li><b>Descripción del síntoma de falla:</b> lo más detallada posible: material, medidas, espesor, N° de parte o código SAP.</li>
+              <li><b>Datos del autor:</b> define tus datos como autor del aviso.</li>
+              <li><b>Prioridad:</b> define la prioridad del aviso.</li>
+              <li><b>Parte del objeto, síntoma de avería y causa:</b> defínelos en los catálogos del aviso.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> La orden debe llevar al mecánico lubricador MEC_LUBR como puesto responsable.</p>
           </div>
         </div>
       </details>
@@ -562,13 +662,20 @@
         <summary><span>Inspección legal o reglamentaria</span> <span class="k k03 sum-k">503</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k03 res-k">503</span><span class="res-title">Inspección legal</span></div>
-            <p class="res-doc">Orden PM03 · predictivo · lo crea: <b>Planificador</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Prescrita por la legislación local y los entes reguladores</li><li>Alcance y frecuencia varían según normativa</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Información técnica en 5W+1H</li><li>Repuestos planificados con anticipación</li></ul></div>
-              <div><h4>Ten presente</h4><p>La frecuencia es normativa: no se reprograma por conveniencia.</p></div>
+            <div class="verd">
+              <div class="vrow no"><span class="vlab">Aviso</span><span class="vval"><b>No para esta actividad</b> — pero si encuentras un síntoma de falla al ejecutarla, haz un aviso N2.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — la genera el plan de mantenimiento como PM03 clave 503. Tú la ejecutas.</span></div>
             </div>
+            <p class="msg"><b>No debes crear la orden: la genera el plan. Tu parte es ejecutarla y, si encuentras un síntoma de falla, hacer un aviso del tipo N2.</b> Si haces el aviso N2, completa de arriba hacia abajo:</p>
+            <ol class="pasos">
+              <li><b>Cabecera:</b> el síntoma de falla: temperatura, vibración, ruido, fuga, olor, desbalanceo o zumbido.</li>
+              <li><b>Ubicación técnica:</b> precisa para el equipo, al nivel más detallado posible.</li>
+              <li><b>Descripción del síntoma de falla:</b> lo más detallada posible: material, medidas, espesor, N° de parte o código SAP.</li>
+              <li><b>Datos del autor:</b> define tus datos como autor del aviso.</li>
+              <li><b>Prioridad:</b> define la prioridad del aviso.</li>
+              <li><b>Parte del objeto, síntoma de avería y causa:</b> defínelos en los catálogos del aviso.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> La frecuencia es normativa: no se reprograma por conveniencia.</p>
           </div>
         </div>
       </details>
@@ -576,13 +683,20 @@
         <summary><span>Servicio planeado u overhaul</span> <span class="k k03 sum-k">504</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k03 res-k">504</span><span class="res-title">Servicio planeado / overhaul</span></div>
-            <p class="res-doc">Orden PM03 · predictivo · lo crea: <b>Planificador</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Actividades periódicas bajo frecuencia establecida</li><li>Incluye reemplazo de piezas y reparación si se requiere</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Información técnica en 5W+1H</li><li>Repuestos planificados con anticipación</li></ul></div>
-              <div><h4>Ten presente</h4><p>Puede combinar inspección y lubricación en la misma orden.</p></div>
+            <div class="verd">
+              <div class="vrow no"><span class="vlab">Aviso</span><span class="vval"><b>No para esta actividad</b> — pero si encuentras un síntoma de falla al ejecutarla, haz un aviso N2.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — la genera el plan de mantenimiento como PM03 clave 504. Tú la ejecutas.</span></div>
             </div>
+            <p class="msg"><b>No debes crear la orden: la genera el plan. Tu parte es ejecutarla y, si encuentras un síntoma de falla, hacer un aviso del tipo N2.</b> Si haces el aviso N2, completa de arriba hacia abajo:</p>
+            <ol class="pasos">
+              <li><b>Cabecera:</b> el síntoma de falla: temperatura, vibración, ruido, fuga, olor, desbalanceo o zumbido.</li>
+              <li><b>Ubicación técnica:</b> precisa para el equipo, al nivel más detallado posible.</li>
+              <li><b>Descripción del síntoma de falla:</b> lo más detallada posible: material, medidas, espesor, N° de parte o código SAP.</li>
+              <li><b>Datos del autor:</b> define tus datos como autor del aviso.</li>
+              <li><b>Prioridad:</b> define la prioridad del aviso.</li>
+              <li><b>Parte del objeto, síntoma de avería y causa:</b> defínelos en los catálogos del aviso.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> Puede combinar inspección y lubricación en la misma orden.</p>
           </div>
         </div>
       </details>
@@ -590,13 +704,20 @@
         <summary><span>Inspección de seguridad o ambiente</span> <span class="k k03 sum-k">505</span></summary>
         <div class="opb">
           <div class="res">
-            <div class="res-top"><span class="k k03 res-k">505</span><span class="res-title">Inspección seguridad / ambiente</span></div>
-            <p class="res-doc">Orden PM03 · predictivo · lo crea: <b>Planificador</b></p>
-            <div class="res-grid">
-              <div><h4>Criterios que debe cumplir</h4><ul><li>Inspecciones definidas como críticas</li><li>Aseguran operación segura y sin impacto ambiental</li></ul></div>
-              <div><h4>Campos que no pueden faltar</h4><ul><li>Clave de OT</li><li>Texto breve con verbo</li><li>Ubicación técnica completa</li><li>Puesto responsable</li><li>Información técnica en 5W+1H</li><li>Repuestos planificados con anticipación</li></ul></div>
-              <div><h4>Ten presente</h4><p>Los requisitos están en las instrucciones de operación de ingeniería.</p></div>
+            <div class="verd">
+              <div class="vrow no"><span class="vlab">Aviso</span><span class="vval"><b>No para esta actividad</b> — pero si encuentras un síntoma de falla al ejecutarla, haz un aviso N2.</span></div>
+              <div class="vrow no"><span class="vlab">Orden de trabajo</span><span class="vval"><b>No te corresponde</b> — la genera el plan de mantenimiento como PM03 clave 505. Tú la ejecutas.</span></div>
             </div>
+            <p class="msg"><b>No debes crear la orden: la genera el plan. Tu parte es ejecutarla y, si encuentras un síntoma de falla, hacer un aviso del tipo N2.</b> Si haces el aviso N2, completa de arriba hacia abajo:</p>
+            <ol class="pasos">
+              <li><b>Cabecera:</b> el síntoma de falla: temperatura, vibración, ruido, fuga, olor, desbalanceo o zumbido.</li>
+              <li><b>Ubicación técnica:</b> precisa para el equipo, al nivel más detallado posible.</li>
+              <li><b>Descripción del síntoma de falla:</b> lo más detallada posible: material, medidas, espesor, N° de parte o código SAP.</li>
+              <li><b>Datos del autor:</b> define tus datos como autor del aviso.</li>
+              <li><b>Prioridad:</b> define la prioridad del aviso.</li>
+              <li><b>Parte del objeto, síntoma de avería y causa:</b> defínelos en los catálogos del aviso.</li>
+            </ol>
+            <p class="ojo"><b>Ojo:</b> Los requisitos están en las instrucciones de operación de ingeniería.</p>
           </div>
         </div>
       </details>
@@ -835,13 +956,13 @@
       <div class="cl-card">
         <h4>Calidad del aviso</h4>
         <ul>
-          <li>Tipo de aviso identificado: N1 o N2</li>
-          <li>Descripción breve del síntoma</li>
-          <li>Ubicación técnica lo más detallada posible</li>
-          <li>Síntoma detallado: material, medidas, espesor, N° de parte</li>
-          <li>Parte del objeto, síntoma de avería y causa</li>
-          <li>Datos del autor</li>
-          <li>Prioridad del aviso</li>
+          <li><b>Tipo de aviso:</b> N1 o N2</li>
+          <li><b>Cabecera:</b> el síntoma de falla</li>
+          <li><b>Ubicación técnica:</b> precisa para el equipo</li>
+          <li><b>Descripción del síntoma:</b> material, medidas, espesor, N° de parte o código SAP</li>
+          <li><b>Datos del autor</b></li>
+          <li><b>Prioridad</b> del aviso</li>
+          <li><b>Parte del objeto, síntoma de avería y causa</b></li>
         </ul>
       </div>
       <div class="cl-card">
